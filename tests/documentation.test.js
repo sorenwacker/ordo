@@ -48,6 +48,11 @@ describe('application naming', () => {
     expect(html).toContain(`<title>${pkg.build.productName}</title>`)
   })
 
+  it('names the product in the sidebar', () => {
+    const sidebar = readFileSync(join(root, 'src/renderer/components/AppSidebar.vue'), 'utf8')
+    expect(sidebar).toContain(`<h2>${pkg.build.productName}</h2>`)
+  })
+
   it('heads the README with the product name', () => {
     expect(readme.split('\n')[0]).toBe(`# ${pkg.build.productName}`)
   })

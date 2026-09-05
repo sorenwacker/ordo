@@ -6,7 +6,7 @@
     @mouseenter="onMouseEnter && onMouseEnter()"
   >
     <div class="sidebar-header">
-      <h2>Todo</h2>
+      <h2>Ordo</h2>
       <button
         class="pin-btn"
         :class="{ pinned: pinned }"

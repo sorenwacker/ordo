@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file. Versions correspond to git tags and GitHub releases; dates use YYMMDD format. Version bumps that were never tagged (0.1.0, 0.3.0-0.3.7, 0.4.x, 0.5.0) are folded into the release that shipped them.
 
+## Unreleased
+
+### Fixed
+
+- The sidebar still read "Todo" after the rename. It now shows the product name, and a test fails if the two drift apart.
+
 ## 0.8.3 - 260905
 
 ### Changed
