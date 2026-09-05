@@ -39,3 +39,27 @@ describe('licensing', () => {
     expect(readme).not.toMatch(/MIT License/)
   })
 })
+
+describe('application naming', () => {
+  const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
+
+  it('titles the window with the product name', () => {
+    const html = readFileSync(join(root, 'src/renderer/index.html'), 'utf8')
+    expect(html).toContain(`<title>${pkg.build.productName}</title>`)
+  })
+
+  it('heads the README with the product name', () => {
+    expect(readme.split('\n')[0]).toBe(`# ${pkg.build.productName}`)
+  })
+
+  // docs/renaming.md is exempt: documenting the move from the old repository
+  // name is its purpose, so the old name appearing there is intentional.
+  it('has no references left to the former repository name', () => {
+    const sources = ['README.md', 'src/main/updater.js']
+    const stale = sources.filter((f) => {
+      const text = readFileSync(join(root, f), 'utf8')
+      return /sorenwacker\/my-todo-list/.test(text)
+    })
+    expect(stale).toEqual([])
+  })
+})

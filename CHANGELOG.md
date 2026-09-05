@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file. Versions corres
 
 ### Changed
 
-- The application is now called Ordo. The name Todo was unsearchable and its bundle identifier, `com.todo.app`, claimed a domain that is not ours, which would have had to change before the build could be signed. The identifier is now `net.sorenwacker.ordo` and the repository is `sorenwacker/ordo`; GitHub redirects the old paths, so existing installations still find updates.
+- The application is now called Ordo. The window title, which still read "Todo List", now follows the product name, and a test fails if the two drift apart. The name Todo was unsearchable and its bundle identifier, `com.todo.app`, claimed a domain that is not ours, which would have had to change before the build could be signed. The identifier is now `net.sorenwacker.ordo` and the repository is `sorenwacker/ordo`; GitHub redirects the old paths, so existing installations still find updates.
 
 ### Added
 
