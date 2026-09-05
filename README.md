@@ -1,6 +1,6 @@
-# Todo
+# Ordo
 
-A desktop todo application built with Electron and Vue 3. Local-first: all
+A desktop task manager built with Electron and Vue 3. Local-first: all
 data lives in a single SQLite file on your machine, with no account and no
 network dependency.
 
@@ -33,6 +33,7 @@ network dependency.
 - [Auto-update](docs/auto-update.md) — per-platform update behavior and
   how to enable signed macOS builds
 - [MCP server](docs/mcp-server.md) — exposing the database to AI assistants
+- [Renaming](docs/renaming.md) — the move from Todo to Ordo and the data migration it required
 - [Cards view](docs/cards.md) — row/card layout modes and the card width setting
 - [Kanban view](docs/kanban.md) — the two board layouts and when each one renders
 - [Notes](docs/notes.md) — the markdown pipeline and editor shared by todo and project notes
@@ -43,15 +44,15 @@ network dependency.
 ### Option A: Download a prebuilt release (recommended)
 
 Most users should not build from source. Download the packaged app from the
-[Releases page](https://github.com/sorenwacker/my-todo-list/releases):
+[Releases page](https://github.com/sorenwacker/ordo/releases):
 
-- **macOS**: download `Todo-<version>-arm64.dmg`, open it, and drag `Todo.app` into `Applications`.
-- **Windows**: download `Todo-Setup-<version>.exe` for the installer, or `Todo-<version>.exe` for a portable build that needs no installation.
-- **Linux**: download `Todo-<version>.AppImage` (mark it executable with `chmod +x`), or `todo_<version>_amd64.deb` for Debian and Ubuntu.
+- **macOS**: download `Ordo-<version>-arm64.dmg`, open it, and drag `Ordo.app` into `Applications`.
+- **Windows**: download `Ordo-Setup-<version>.exe` for the installer, or `Ordo-<version>.exe` for a portable build that needs no installation.
+- **Linux**: download `Ordo-<version>.AppImage` (mark it executable with `chmod +x`), or `ordo_<version>_amd64.deb` for Debian and Ubuntu.
 
 **The macOS build is Apple silicon only.** It is built for `arm64` and no x64 or universal target is produced, so it will not run on an Intel Mac. The Linux packages are x86_64 only for the same reason. On either platform, build from source to target a different architecture.
 
-The macOS build is not code-signed. On first launch, right-click `Todo.app` and choose **Open** (or allow it under **System Settings > Privacy & Security**) to get past Gatekeeper. Because the build is unsigned, macOS cannot install updates automatically; the app notifies once per new version instead (see [Auto-update](docs/auto-update.md)).
+The macOS build is not code-signed. On first launch, right-click `Ordo.app` and choose **Open** (or allow it under **System Settings > Privacy & Security**) to get past Gatekeeper. Because the build is unsigned, macOS cannot install updates automatically; the app notifies once per new version instead (see [Auto-update](docs/auto-update.md)).
 
 ### Option B: Build from source
 
@@ -70,8 +71,8 @@ supported Node version are required.
 #### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/sorenwacker/my-todo-list.git
-cd my-todo-list
+git clone https://github.com/sorenwacker/ordo.git
+cd ordo
 
 # Use the pinned Node version
 nvm use
@@ -162,6 +163,7 @@ src/
 │   ├── database.js     # SQLite operations
 │   ├── schema.js       # Schema, migrations, verification
 │   ├── validators.js   # Input validation for IPC payloads
+│   ├── legacyData.js   # One-time copy of data from the previous app name
 │   ├── importExport.js # JSON backup import and export
 │   ├── updater.js      # Auto-update behavior
 │   ├── logger.js       # Main-process logging
@@ -183,12 +185,13 @@ SQLite with the following tables: `todos`, `projects`, `statuses`,
 
 ## Data Locations
 
-- **macOS**: `~/Library/Application Support/todo/`
-- **Windows**: `%APPDATA%/todo/`
-- **Linux**: `~/.config/todo/`
+- **macOS**: `~/Library/Application Support/ordo/`
+- **Windows**: `%APPDATA%/ordo/`
+- **Linux**: `~/.config/ordo/`
 
-Database file: `todos.db`. Backups created by resets and migrations sit next
-to it, named `todos-backup-*.db` and `todos-premigrate-*.db`.
+Database file: `todos.db`. Backups created by resets and migrations sit next to it, named `todos-backup-*.db` and `todos-premigrate-*.db`.
+
+The application was named Todo before 0.9.0, and Electron derives this directory from the application name. On first launch after the rename the database, its write-ahead log, and any backups are copied from the old `todo` directory into the new one. The copy runs only when the new directory has no database yet, and the old directory is left untouched, so an older build still opens its own data. See [Renaming](docs/renaming.md).
 
 ## Contributing
 
@@ -203,4 +206,4 @@ Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for the c
 
 ## Version History
 
-See [CHANGELOG.md](CHANGELOG.md) or the [Releases page](https://github.com/sorenwacker/my-todo-list/releases).
+See [CHANGELOG.md](CHANGELOG.md) or the [Releases page](https://github.com/sorenwacker/ordo/releases).

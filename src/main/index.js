@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, screen, dialog, shell, session } from 'ele
 import { join } from 'path'
 import { readFileSync, writeFileSync, watch } from 'fs'
 import { Database } from './database.js'
+import { migrateLegacyUserData } from './legacyData.js'
 import logger from './logger.js'
 import { initAutoUpdater } from './updater.js'
 import history from './history.js'
@@ -88,14 +89,32 @@ function createMainWindow() {
 }
 
 // Ensure consistent userData path in dev and production
-// In dev, Electron uses 'Electron' as the app name, but we want 'todo'
+// In dev, Electron uses 'Electron' as the app name, but we want 'ordo'
 if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
-  const userDataPath = join(app.getPath('appData'), 'todo')
+  const userDataPath = join(app.getPath('appData'), 'ordo')
   app.setPath('userData', userDataPath)
 }
 
+// The application was named "todo" before 0.9.0. Electron derives userData
+// from the name, so the rename would otherwise point a returning user at an
+// empty directory while their database stayed behind under the old one.
+const LEGACY_USER_DATA_NAME = 'todo'
+
 app.whenReady().then(() => {
   log.info('Application starting')
+  try {
+    migrateLegacyUserData({
+      userDataPath: app.getPath('userData'),
+      legacyPath: join(app.getPath('appData'), LEGACY_USER_DATA_NAME),
+      log
+    })
+  } catch (error) {
+    // A failed copy must not stop the app: it opens an empty database and the
+    // untouched legacy directory can still be recovered by hand.
+    log.error('Could not migrate data from the previous application name', {
+      error: error.message
+    })
+  }
   try {
     database = new Database()
   } catch (error) {

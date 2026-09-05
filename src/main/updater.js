@@ -9,7 +9,7 @@ import {
 
 const log = logger.child({ module: 'updater' })
 
-export const RELEASES_URL = 'https://github.com/sorenwacker/my-todo-list/releases/latest'
+export const RELEASES_URL = 'https://github.com/sorenwacker/ordo/releases/latest'
 export const SKIPPED_UPDATE_VERSION_KEY = 'skipped-update-version'
 
 // Resolved lazily on every use: on macOS the window can be closed and

@@ -1,5 +1,5 @@
 {
-  "name": "todo",
+  "name": "ordo",
   "version": "0.8.2",
   "license": "Apache-2.0",
   "description": "Markdown-based todo list with notes and deadlines",
@@ -69,8 +69,8 @@
     "vuedraggable": "^4.1.0"
   },
   "build": {
-    "appId": "com.todo.app",
-    "productName": "Todo",
+    "appId": "net.sorenwacker.ordo",
+    "productName": "Ordo",
     "npmRebuild": false,
     "directories": {
       "output": "dist"
@@ -78,7 +78,7 @@
     "publish": {
       "provider": "github",
       "owner": "sorenwacker",
-      "repo": "my-todo-list"
+      "repo": "ordo"
     },
     "files": [
       "out/**/*",

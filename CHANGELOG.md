@@ -4,7 +4,13 @@ All notable changes to this project are documented in this file. Versions corres
 
 ## Unreleased
 
+### Changed
+
+- The application is now called Ordo. The name Todo was unsearchable and its bundle identifier, `com.todo.app`, claimed a domain that is not ours, which would have had to change before the build could be signed. The identifier is now `net.sorenwacker.ordo` and the repository is `sorenwacker/ordo`; GitHub redirects the old paths, so existing installations still find updates.
+
 ### Added
+
+- Data is carried across the rename. Electron derives its user data directory from the application name, so the rename alone would have opened an empty database beside the user's real one, which is indistinguishable from losing every todo. On first launch the database, its write-ahead log, and any backups are copied from the old `todo` directory into the new `ordo` one. The copy runs only when the new directory has no database, and the old directory is left untouched so an older build still opens its own data. See [Renaming](docs/renaming.md).
 
 - The repository now ships the licence it grants. `LICENSE` holds the Apache License 2.0 and `NOTICE` the copyright statement redistributions must preserve; `package.json` declares `Apache-2.0`. Previously the only statement of a licence anywhere was a line in the README claiming MIT, with no licence file and no `license` field to back it.
 
