@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versions corres
 
 ## Unreleased
 
+### Security
+
+- Seven advisories patched, lockfile only: fast-uri to 3.1.7 (GHSA in the 3.0.0-3.1.5 range, reached at runtime through the app and the MCP server), qs to 6.16.0 in the MCP server, browserslist to 4.28.9, @xmldom/xmldom to 0.8.15, @humanfs/node to 0.16.8, and postcss-selector-parser to 7.1.6. `npm audit` now reports no vulnerabilities in either package tree.
+
 ### Fixed
 
 - The sidebar still read "Todo" after the rename. It now shows the product name, and a test fails if the two drift apart.
