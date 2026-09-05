@@ -1,6 +1,6 @@
 # Renaming: from Todo to Ordo
 
-The application was called Todo up to and including 0.8.2, and Ordo from 0.9.0. The rename changes more than a label, because two things the user depends on are derived from the application name.
+The application was called Todo up to and including 0.8.2, and Ordo from 0.8.3. The rename changes more than a label, because two things the user depends on are derived from the application name.
 
 ## What the name controls
 
@@ -20,10 +20,10 @@ Three conditions stop it, each reported as a reason rather than an error:
 - `no-legacy-data` — there is no old database to copy, which is the normal case for a new installation.
 - `same-directory` — the two paths resolve to the same place, so there is nothing to do.
 
-The copy is non-destructive. The old `todo` directory is left exactly as it was, which means a user who installs 0.9.0, dislikes it, and goes back to 0.8.2 still finds their data where that build expects it. The cost is one duplicated database on disk until the user deletes the old directory by hand.
+The copy is non-destructive. The old `todo` directory is left exactly as it was, which means a user who installs 0.8.3, dislikes it, and goes back to 0.8.2 still finds their data where that build expects it. The cost is one duplicated database on disk until the user deletes the old directory by hand.
 
 A failure to copy is logged and swallowed rather than being allowed to stop startup. The application then opens an empty database, and the untouched old directory can still be recovered by hand, which is a better outcome than an application that refuses to start.
 
 ## Repository and downloads
 
-The GitHub repository moved from `sorenwacker/my-todo-list` to `sorenwacker/ordo`. GitHub redirects the old paths, including release asset URLs, so existing installations continue to find updates. Release assets are named `Ordo-<version>-*` from 0.9.0; earlier releases keep their `Todo-<version>-*` names.
+The GitHub repository moved from `sorenwacker/my-todo-list` to `sorenwacker/ordo`. GitHub redirects the old paths, including release asset URLs, so existing installations continue to find updates. Release assets are named `Ordo-<version>-*` from 0.8.3; earlier releases keep their `Todo-<version>-*` names.

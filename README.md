@@ -191,7 +191,7 @@ SQLite with the following tables: `todos`, `projects`, `statuses`,
 
 Database file: `todos.db`. Backups created by resets and migrations sit next to it, named `todos-backup-*.db` and `todos-premigrate-*.db`.
 
-The application was named Todo before 0.9.0, and Electron derives this directory from the application name. On first launch after the rename the database, its write-ahead log, and any backups are copied from the old `todo` directory into the new one. The copy runs only when the new directory has no database yet, and the old directory is left untouched, so an older build still opens its own data. See [Renaming](docs/renaming.md).
+The application was named Todo before 0.8.3, and Electron derives this directory from the application name. On first launch after the rename the database, its write-ahead log, and any backups are copied from the old `todo` directory into the new one. The copy runs only when the new directory has no database yet, and the old directory is left untouched, so an older build still opens its own data. See [Renaming](docs/renaming.md).
 
 ## Contributing
 

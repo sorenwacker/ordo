@@ -95,7 +95,7 @@ if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
   app.setPath('userData', userDataPath)
 }
 
-// The application was named "todo" before 0.9.0. Electron derives userData
+// The application was named "todo" before 0.8.3. Electron derives userData
 // from the name, so the rename would otherwise point a returning user at an
 // empty directory while their database stayed behind under the old one.
 const LEGACY_USER_DATA_NAME = 'todo'
