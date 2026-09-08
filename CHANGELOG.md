@@ -2,7 +2,15 @@
 
 All notable changes to this project are documented in this file. Versions correspond to git tags and GitHub releases; dates use YYMMDD format. Version bumps that were never tagged (0.1.0, 0.3.0-0.3.7, 0.4.x, 0.5.0) are folded into the release that shipped them.
 
-## Unreleased
+## 0.8.4 - 260908
+
+### Fixed
+
+- The MCP server still opened the database of the application's previous name. Electron derives the user data directory from the application name, so since the rename the server read and wrote `todo/todos.db` while the application used `ordo/todos.db`: todos added through an AI assistant never appeared in the application. The server now resolves the current name, and a test fails if its directory and the application's ever diverge again. On a machine upgraded from Todo, launch the application once before using the server, so the first-launch copy of the old database is not pre-empted by an empty one. See [MCP server](docs/mcp-server.md).
+
+### Changed
+
+- The MCP server, its package and its database path variable carry the new name: the server registers as `ordo` and reads `ORDO_DB_PATH`. `TODO_DB_PATH` is still honoured, with a deprecation notice on stderr, so existing setups keep working. Clients registered against the old repository path must be re-registered against the new one.
 
 ### Security
 
