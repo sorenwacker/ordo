@@ -1,9 +1,9 @@
 {
-  "name": "todo-mcp-server",
+  "name": "ordo-mcp-server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "MCP server exposing the todo database to AI assistants",
+  "description": "MCP server exposing the Ordo database to AI assistants",
   "main": "server.js",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

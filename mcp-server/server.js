@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 /**
- * Standalone MCP server for the todo database. Speaks MCP over stdio.
+ * Standalone MCP server for the Ordo database. Speaks MCP over stdio.
  * See docs/mcp-server.md.
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js'
-import { homedir } from 'os'
-import { join } from 'path'
 import { createTools } from './tools.js'
+import { resolveDbPath } from './dbPath.js'
 
 // stdout is the MCP protocol channel. The app logger writes info to stdout,
 // so it must be silenced to errors (stderr) BEFORE database.js loads —
@@ -19,22 +18,15 @@ const { Database } = await import('../src/main/database.js')
 // node_modules copy is rebuilt for Electron's ABI by dev/build.
 const { default: BetterSqlite3 } = await import('better-sqlite3')
 
-function defaultDbPath() {
-  const home = homedir()
-  if (process.platform === 'darwin') {
-    return join(home, 'Library', 'Application Support', 'todo', 'todos.db')
-  }
-  if (process.platform === 'win32') {
-    return join(process.env.APPDATA || join(home, 'AppData', 'Roaming'), 'todo', 'todos.db')
-  }
-  return join(process.env.XDG_CONFIG_HOME || join(home, '.config'), 'todo', 'todos.db')
+const { path: dbPath, source } = resolveDbPath()
+if (source === 'TODO_DB_PATH') {
+  // stderr, never stdout: stdout carries the MCP protocol.
+  process.stderr.write('TODO_DB_PATH is deprecated; use ORDO_DB_PATH instead.\n')
 }
-
-const dbPath = process.env.TODO_DB_PATH || defaultDbPath()
 const db = new Database(dbPath, { driver: BetterSqlite3 })
 const tools = createTools(db)
 
-const server = new Server({ name: 'todo', version: '0.1.0' }, { capabilities: { tools: {} } })
+const server = new Server({ name: 'ordo', version: '0.1.0' }, { capabilities: { tools: {} } })
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: tools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema }))
@@ -43,7 +35,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const tool = tools.find((t) => t.name === request.params.name)
   if (!tool) {
-    return { content: [{ type: 'text', text: `Unknown tool: ${request.params.name}` }], isError: true }
+    return {
+      content: [{ type: 'text', text: `Unknown tool: ${request.params.name}` }],
+      isError: true
+    }
   }
   try {
     const result = await tool.handler(request.params.arguments ?? {})

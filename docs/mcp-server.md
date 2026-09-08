@@ -1,6 +1,6 @@
 # MCP Server
 
-A standalone Model Context Protocol server that exposes the todo database
+A standalone Model Context Protocol server that exposes the Ordo database
 to AI assistants (e.g. Claude Code) over stdio. It runs independently of
 the Electron app and both processes may use the database at the same time.
 
@@ -20,10 +20,22 @@ version is refused, migrations and verification run identically.
 
 Resolved in this order:
 
-1. `TODO_DB_PATH` environment variable.
-2. The platform default used by the app: `~/Library/Application Support/todo/todos.db`
-   (macOS), `%APPDATA%/todo/todos.db` (Windows), `~/.config/todo/todos.db`
+1. `ORDO_DB_PATH` environment variable.
+2. `TODO_DB_PATH` environment variable, honoured for setups that predate the
+   rename. It is deprecated: the server writes a notice to stderr when it is
+   used and it will be dropped in a later release.
+3. The platform default used by the app: `~/Library/Application Support/ordo/todos.db`
+   (macOS), `%APPDATA%/ordo/todos.db` (Windows), `~/.config/ordo/todos.db`
    (Linux).
+
+The directory name is the application name, so it changed with the rename
+(see [Renaming](renaming.md)). The server resolves the current name only; it
+does not look in the `todo` directory the application used before 0.8.3.
+
+On a machine upgraded from Todo, launch the application once before using the
+server. The application copies the old database forward on first launch, but
+only while the new directory holds no `todos.db`. A server started first
+creates an empty database there, and that copy is then skipped for good.
 
 ## Concurrency
 
@@ -54,6 +66,6 @@ soft-deleted and archived todos are excluded from listings.
 
 ## Registration
 
-    claude mcp add --scope user todo -- node <repo>/mcp-server/server.js
+    claude mcp add --scope user ordo -- node <repo>/mcp-server/server.js
 
 Any MCP-capable client can use the same command line.
