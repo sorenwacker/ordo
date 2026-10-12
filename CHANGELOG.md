@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file. Versions corres
 ### Changed
 
 - The kanban board no longer renders the Done column while "Show done" is off. Completed cards were already hidden, so the column could only ever be empty and spent a column's width on nothing. Turning "Show done" on brings the column back with the completed cards in it. See [Kanban view](docs/kanban.md).
+- Kanban columns no longer have a maximum width. They were capped at 400px, so a board with few columns left an empty strip on the right of a wide window. Columns now share the full board width; the minimum width and the horizontal scroll below it are unchanged.
 
 ## 0.8.4 - 260908
 

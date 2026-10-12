@@ -13,7 +13,6 @@
      column is spent before the title gets any. Below this floor the title wraps
      one character per line; the board scrolls sideways instead. */
   min-width: 260px;
-  max-width: 400px;
   background: #1a1a1a;
   border-radius: 12px;
   padding: 16px;

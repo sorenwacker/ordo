@@ -87,6 +87,12 @@ describe('kanban column width', () => {
       expect(floor - furniture).toBeGreaterThanOrEqual(MIN_TITLE_WIDTH)
     }
   })
+
+  // A ceiling on column width leaves an empty strip on the right of a wide
+  // window whenever there are few columns; columns share the board instead.
+  it('declares no column ceiling at any breakpoint', () => {
+    expect(allPx(columnBlocks, 'max-width')).toEqual([])
+  })
 })
 
 /**

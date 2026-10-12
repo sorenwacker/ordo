@@ -50,6 +50,8 @@ The title therefore renders at `column width - 149px`. Below roughly a 200px col
 
 `.kanban-column` sets `min-width: 260px` to keep that from happening, which leaves the title at least 110px. The floor holds at every breakpoint down to 600px; the board scrolls horizontally instead of shrinking columns further, which is what `overflow-x: auto` on `.kanban-view` is for. Below 600px a column is `85vw` and the board is one column at a time.
 
+There is no ceiling. Columns share the full board width, so a board with few columns, for instance with the Done column hidden, has no empty strip on the right. A `max-width` on `.kanban-column` at any breakpoint would bring that strip back; the layout test fails if one is declared.
+
 `tests/kanbanLayout.test.js` gates the arithmetic: it reads the widths back out of the stylesheets and fails if the furniture grows or the floor drops far enough to squeeze the title.
 
 ## Card styling

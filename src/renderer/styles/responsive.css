@@ -22,7 +22,6 @@
 
   .kanban-column {
     flex: 1 1 260px;
-    max-width: 350px;
   }
 
 }
@@ -133,7 +132,6 @@
 
   .kanban-column {
     flex: 1 1 260px;
-    max-width: 300px;
   }
 
   .todo-card {
