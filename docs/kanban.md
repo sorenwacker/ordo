@@ -74,6 +74,6 @@ Both directions run the same completion transition: completing a card with no du
 
 The "+ Add" button under the Done column is deliberately excluded: a card created there starts unticked, because creating an already-completed card is not a useful action and the card would be hidden immediately.
 
-Completed items are hidden unless "Show done" is on, so ticking a card's checkbox removes it from the board rather than showing it in the Done column, until "Show done" is enabled.
+Completed items are hidden unless "Show done" is on, and so is the Done column itself: with "Show done" off, the board renders every status column except Done, in both layouts. A column that could only ever be empty would be wasted width. Ticking a card's checkbox therefore removes the card from the board; turning "Show done" on brings the column back with the completed cards in it. While the column is hidden, a card cannot be dragged into it, and the checkbox is the only way to complete a card from the board. `tests/kanbanDrop.test.js` gates this: the view receives the flag as `showCompleted` and the column set it renders is checked under both values.
 
 The rules live in `src/renderer/utils/doneStatus.js` as pure functions. The writes happen in `toggleComplete` and `moveTodoTo` in `src/renderer/composables/useTodos.js`; both kanban drop handlers delegate to `moveTodoTo`.

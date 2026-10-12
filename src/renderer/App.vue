@@ -238,6 +238,7 @@
                 :is-project-selected="isProjectSelected"
                 :grouped-todos="groupedTodos"
                 :statuses="statuses"
+                :show-completed="showCompleted"
                 :no-status-todos="noStatusTodos"
                 :selected-todo-id="null"
                 :selected-todo-ids="selectedTodoIds"

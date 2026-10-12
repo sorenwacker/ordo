@@ -211,3 +211,63 @@ describe('the Done column and the completion checkbox', () => {
     )
   })
 })
+
+// The "Show done" flag reaches the view as `showCompleted`. Completed cards are
+// already filtered out upstream when it is off, so the Done column would only
+// ever be empty; the view drops it from both layouts instead.
+describe('KanbanView Done column visibility', () => {
+  const stubs = { draggable: { template: '<div />' } }
+
+  function columnNames(wrapper) {
+    return wrapper.findAll('.column-header h3').map((el) => el.text())
+  }
+
+  it('hides the Done column on the status board when showCompleted is off', () => {
+    const wrapper = mount(KanbanView, {
+      props: { statuses: STATUSES_WITH_DONE, showCompleted: false, allTodos: [] },
+      global: { stubs }
+    })
+    expect(columnNames(wrapper)).toEqual(['No Status', 'Todo', 'Doing'])
+  })
+
+  it('shows the Done column on the status board when showCompleted is on', () => {
+    const wrapper = mount(KanbanView, {
+      props: { statuses: STATUSES_WITH_DONE, showCompleted: true, allTodos: [] },
+      global: { stubs }
+    })
+    expect(columnNames(wrapper)).toEqual(['No Status', 'Todo', 'Doing', 'Done'])
+  })
+
+  it('hides the Done column in every grouped-board section when showCompleted is off', () => {
+    const wrapper = mount(KanbanView, {
+      props: {
+        groupByProject: true,
+        isProjectSelected: false,
+        statuses: STATUSES_WITH_DONE,
+        showCompleted: false,
+        groupedTodos: [
+          { id: 'inbox', name: 'Inbox', color: '#666', todos: [] },
+          { id: 5, name: 'Work', color: '#f00', todos: [] }
+        ],
+        allTodos: []
+      },
+      global: { stubs }
+    })
+    expect(columnNames(wrapper)).toEqual([
+      'No Status',
+      'Todo',
+      'Doing',
+      'No Status',
+      'Todo',
+      'Doing'
+    ])
+  })
+
+  it('keeps every column when no status is named Done', () => {
+    const wrapper = mount(KanbanView, {
+      props: { statuses: STATUSES, showCompleted: false, allTodos: [] },
+      global: { stubs }
+    })
+    expect(columnNames(wrapper)).toEqual(['No Status', 'Todo', 'Doing'])
+  })
+})

@@ -49,7 +49,7 @@
               </draggable>
             </div>
             <div
-              v-for="status in statuses"
+              v-for="status in visibleStatuses"
               :key="status.id"
               class="kanban-column"
               :style="{ borderTopColor: status.color }"
@@ -130,7 +130,7 @@
       </div>
 
       <div
-        v-for="status in statuses"
+        v-for="status in visibleStatuses"
         :key="status.id"
         class="kanban-column"
         :style="{ borderTopColor: status.color }"
@@ -177,6 +177,7 @@
 <script>
   import draggable from 'vuedraggable'
   import KanbanCard from './KanbanCard.vue'
+  import { findDoneStatus } from '../utils/doneStatus.js'
 
   export default {
     name: 'KanbanView',
@@ -200,6 +201,10 @@
       statuses: {
         type: Array,
         default: () => []
+      },
+      showCompleted: {
+        type: Boolean,
+        default: false
       },
       noStatusTodos: {
         type: Array,
@@ -235,6 +240,15 @@
       return {
         scrollDirection: 0,
         scrollAnimationId: null
+      }
+    },
+    computed: {
+      // Completed cards are filtered out upstream while "Show done" is off, so
+      // the Done column could only ever be empty; both layouts leave it out.
+      visibleStatuses() {
+        if (this.showCompleted) return this.statuses
+        const done = findDoneStatus(this.statuses)
+        return done ? this.statuses.filter((status) => status.id !== done.id) : this.statuses
       }
     },
     methods: {
