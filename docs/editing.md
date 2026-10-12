@@ -6,6 +6,7 @@ Several surfaces edit in place rather than in a dialog: a click (or double-click
 | --- | --- | --- |
 | Card title (cards and kanban) | double-click the title | saves the title |
 | Card notes (cards and kanban) | click the rendered notes | saves the notes, returns to the rendered view |
+| Full-screen card title and notes | as on the card | as on the card; closing the overlay saves first (see [Full-screen card](fullscreen.md)) |
 | Project notes pane | click the rendered notes, or the Edit button | saves the notes, returns to the rendered view |
 | Sidebar "Add Project" / "Add Status" | click the button | discards the typed name |
 

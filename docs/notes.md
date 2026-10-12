@@ -19,5 +19,6 @@ Surfaces:
 
 - Project notes pane: click the rendered notes to edit (the Edit/View buttons also switch modes).
 - Card notes (cards view) and kanban card notes: click the rendered notes to edit.
+- Full-screen card (see [Full-screen card](fullscreen.md)): click the rendered notes to edit; the editor fills the overlay.
 
 What counts as leaving the editor - and why switching to another application does not - is described in [Inline editing](editing.md).

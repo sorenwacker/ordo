@@ -524,3 +524,105 @@
   color: #fff;
 }
 
+
+/* Full-screen card (see docs/fullscreen.md) */
+.kanban-card .fullscreen-btn:hover,
+.todo-card .card-header .fullscreen-btn:hover {
+  color: #4a9eff;
+  background: rgba(74, 158, 255, 0.15);
+}
+
+.card-fullscreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+
+.fullscreen-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  max-width: 1100px;
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 12px;
+  padding: 20px 24px;
+  gap: 12px;
+}
+
+.fullscreen-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fullscreen-title {
+  flex: 1;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f0f0f0;
+  word-break: break-word;
+}
+
+.fullscreen-title-input {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f0f0f0;
+  background: #2a2a2a;
+  border: 1px solid #4a9eff;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.fullscreen-close {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.fullscreen-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.fullscreen-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.fullscreen-notes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-notes .markdown-body {
+  flex: 1;
+  cursor: text;
+  font-size: 14px;
+}
+
+.fullscreen-notes .add-notes-link {
+  color: #888;
+}
+
+.fullscreen-notes .cm-editor {
+  flex: 1;
+  min-height: 0;
+}

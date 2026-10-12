@@ -77,6 +77,13 @@
         @click.stop
       />
       <span v-else class="card-title" @click.stop @dblclick.stop="startEdit">{{ todo.title }}</span>
+      <button
+        class="fullscreen-btn"
+        title="Open full screen"
+        @click.stop="$emit('open-fullscreen')"
+      >
+        <Maximize2 :size="14" />
+      </button>
       <template v-if="isTrashView">
         <button
           class="restore-btn"
@@ -179,7 +186,7 @@
 
 <script>
   import NotesEditor from './NotesEditor.vue'
-  import { Archive, Trash2, RotateCcw } from 'lucide-vue-next'
+  import { Archive, Maximize2, Trash2, RotateCcw } from 'lucide-vue-next'
   import cardInteractionsMixin from './cardInteractionsMixin.js'
 
   export default {
@@ -187,6 +194,7 @@
     components: {
       NotesEditor,
       Archive,
+      Maximize2,
       Trash2,
       RotateCcw
     },
@@ -251,7 +259,8 @@
       'update-notes',
       'archive',
       'move-to-project',
-      'set-due-date'
+      'set-due-date',
+      'open-fullscreen'
     ],
     methods: {
       onDragStart(event) {

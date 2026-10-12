@@ -57,6 +57,7 @@
                 @archive="$emit('archive-todo', element.id)"
                 @move-to-project="$emit('move-to-project', element, $event)"
                 @set-due-date="$emit('set-due-date', element, $event)"
+                @open-fullscreen="$emit('open-fullscreen', element)"
               />
             </template>
           </draggable>
@@ -97,6 +98,7 @@
             @archive="$emit('archive-todo', element.id)"
             @move-to-project="$emit('move-to-project', element, $event)"
             @set-due-date="$emit('set-due-date', element, $event)"
+            @open-fullscreen="$emit('open-fullscreen', element)"
           />
         </template>
       </draggable>
@@ -189,7 +191,8 @@
       'update-notes',
       'archive-todo',
       'move-to-project',
-      'set-due-date'
+      'set-due-date',
+      'open-fullscreen'
     ],
     data() {
       return {

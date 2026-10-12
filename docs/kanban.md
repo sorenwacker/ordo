@@ -34,7 +34,7 @@ Each `draggable` list therefore carries the identity of its own drop zone as dat
 
 ## Column width
 
-A card's header is a flex row: checkbox, title, archive button, delete button. Everything except the title is fixed width and does not shrink, so a fixed amount of each column is spent before the title gets any space at all:
+A card's header is a flex row: checkbox, title, full-screen button, archive button, delete button. Everything except the title is fixed width and does not shrink, so a fixed amount of each column is spent before the title gets any space at all:
 
 | Item | Width |
 | --- | --- |
@@ -42,13 +42,13 @@ A card's header is a flex row: checkbox, title, archive button, delete button. E
 | Card padding (both sides) | 24px |
 | Card left border | 3px |
 | Checkbox | 16px |
-| Archive and delete buttons | 44px |
-| Three header gaps | 30px |
-| Total | 149px |
+| Full-screen, archive and delete buttons | 66px |
+| Four header gaps | 40px |
+| Total | 181px |
 
-The title therefore renders at `column width - 149px`. Below roughly a 200px column the title is narrower than a few characters, and because it also carries `word-break: break-word` it wraps once per character and the card grows to hundreds of pixels tall.
+The title therefore renders at `column width - 181px`. Below roughly a 200px column the title is narrower than a few characters, and because it also carries `word-break: break-word` it wraps once per character and the card grows to hundreds of pixels tall.
 
-`.kanban-column` sets `min-width: 260px` to keep that from happening, which leaves the title at least 110px. The floor holds at every breakpoint down to 600px; the board scrolls horizontally instead of shrinking columns further, which is what `overflow-x: auto` on `.kanban-view` is for. Below 600px a column is `85vw` and the board is one column at a time.
+`.kanban-column` sets `min-width: 300px` to keep that from happening, which leaves the title at least 119px. The floor holds at every breakpoint down to 600px; the board scrolls horizontally instead of shrinking columns further, which is what `overflow-x: auto` on `.kanban-view` is for. Below 600px a column is `85vw` and the board is one column at a time.
 
 There is no ceiling. Columns share the full board width, so a board with few columns, for instance with the Done column hidden, has no empty strip on the right. A `max-width` on `.kanban-column` at any breakpoint would bring that strip back; the layout test fails if one is declared.
 

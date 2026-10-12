@@ -4,7 +4,13 @@ All notable changes to this project are documented in this file. Versions corres
 
 ## Unreleased
 
+### Added
+
+- Every card has a full-screen button that opens it in an overlay covering the window, with the title, project, due date and notes. Title and notes edit in place as on the card; Escape, the close button and a click on the backdrop close it, saving an open editor first. See [Full-screen card](docs/fullscreen.md).
+
 ### Changed
+
+- The kanban column floor rose from 260px to 300px to make room for the third header button without squeezing the title.
 
 - The kanban board no longer renders the Done column while "Show done" is off. Completed cards were already hidden, so the column could only ever be empty and spent a column's width on nothing. Turning "Show done" on brings the column back with the completed cards in it. See [Kanban view](docs/kanban.md).
 - Kanban columns no longer have a maximum width. They were capped at 400px, so a board with few columns left an empty strip on the right of a wide window. Columns now share the full board width; the minimum width and the horizontal scroll below it are unchanged.

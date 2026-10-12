@@ -213,3 +213,20 @@ describe('CardItem title clicks do not disturb the card', () => {
     expect(wrapper.emitted('click')).toHaveLength(1)
   })
 })
+
+describe('CardItem full-screen button', () => {
+  it('emits open-fullscreen without selecting the card', async () => {
+    const wrapper = mount(CardItem, { props: { todo: makeTodo() } })
+    await wrapper.get('.fullscreen-btn').trigger('click')
+    expect(wrapper.emitted('open-fullscreen')).toHaveLength(1)
+    expect(wrapper.emitted('click')).toBeUndefined()
+    expect(wrapper.emitted('toggle-complete')).toBeUndefined()
+  })
+
+  it('keeps the button in the trash and archive views', () => {
+    for (const props of [{ isTrashView: true }, { isArchiveView: true }]) {
+      const wrapper = mount(CardItem, { props: { todo: makeTodo(), ...props } })
+      expect(wrapper.find('.fullscreen-btn').exists()).toBe(true)
+    }
+  })
+})

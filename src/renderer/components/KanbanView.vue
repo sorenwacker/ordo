@@ -44,6 +44,7 @@
                     @update-notes="$emit('update-notes', element, $event)"
                     @archive="$emit('archive-todo', element.id)"
                     @set-due-date="$emit('set-due-date', element, $event)"
+                    @open-fullscreen="$emit('open-fullscreen', element)"
                   />
                 </template>
               </draggable>
@@ -83,6 +84,7 @@
                     @update-notes="$emit('update-notes', element, $event)"
                     @archive="$emit('archive-todo', element.id)"
                     @set-due-date="$emit('set-due-date', element, $event)"
+                    @open-fullscreen="$emit('open-fullscreen', element)"
                   />
                 </template>
               </draggable>
@@ -123,6 +125,7 @@
               @update-notes="$emit('update-notes', element, $event)"
               @archive="$emit('archive-todo', element.id)"
               @set-due-date="$emit('set-due-date', element, $event)"
+              @open-fullscreen="$emit('open-fullscreen', element)"
             />
           </template>
         </draggable>
@@ -163,6 +166,7 @@
               @update-notes="$emit('update-notes', element, $event)"
               @archive="$emit('archive-todo', element.id)"
               @set-due-date="$emit('set-due-date', element, $event)"
+              @open-fullscreen="$emit('open-fullscreen', element)"
             />
           </template>
         </draggable>
@@ -234,7 +238,8 @@
       'update-title',
       'update-notes',
       'archive-todo',
-      'set-due-date'
+      'set-due-date',
+      'open-fullscreen'
     ],
     data() {
       return {

@@ -60,6 +60,14 @@
 
     <HelpModal v-if="showHelpModal" @close="showHelpModal = false" />
 
+    <CardFullscreen
+      v-if="fullscreenTodo"
+      :todo="fullscreenTodo"
+      @close="fullscreenTodoId = null"
+      @update-title="handleUpdateTitle(fullscreenTodo, $event)"
+      @update-notes="handleUpdateNotes(fullscreenTodo, $event)"
+    />
+
     <!-- Modals -->
     <StatusModal
       :status="editingStatus"
@@ -228,6 +236,7 @@
                 @archive-todo="archiveTodo"
                 @move-to-project="moveToProject"
                 @set-due-date="setDueDate"
+                @open-fullscreen="fullscreenTodoId = $event.id"
               />
 
               <!-- Kanban View -->
@@ -254,6 +263,7 @@
                 @update-notes="handleUpdateNotes"
                 @archive-todo="archiveTodo"
                 @set-due-date="setDueDate"
+                @open-fullscreen="fullscreenTodoId = $event.id"
               />
 
               <div
@@ -285,6 +295,7 @@
   import {
     AppHeader,
     AppSidebar,
+    CardFullscreen,
     CardsView,
     HelpModal,
     HomeLanding,
@@ -321,6 +332,7 @@
     components: {
       AppHeader,
       AppSidebar,
+      CardFullscreen,
       CardsView,
       GlobalSearch,
       HelpModal,
@@ -406,7 +418,9 @@
           redoDescription: null
         },
         // Help modal
-        showHelpModal: false
+        showHelpModal: false,
+        // Todo open in the full-screen overlay, null when closed
+        fullscreenTodoId: null
       }
     },
     computed: {
@@ -432,6 +446,11 @@
       },
       allTodos() {
         return this.todosComposable.allTodos.value
+      },
+      // Read from the live list, so the overlay follows edits and closes when
+      // the todo is gone.
+      fullscreenTodo() {
+        return this.allTodos.find((t) => t.id === this.fullscreenTodoId) || null
       },
       statuses() {
         return this.statusesComposable.statuses.value

@@ -36,6 +36,7 @@ export default [
         Element: 'readonly',
         Event: 'readonly',
         CustomEvent: 'readonly',
+        KeyboardEvent: 'readonly',
         localStorage: 'readonly',
         alert: 'readonly',
         confirm: 'readonly',

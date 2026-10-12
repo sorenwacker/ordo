@@ -49,6 +49,13 @@
         @click.stop
       />
       <span v-else class="card-title" @click.stop @dblclick.stop="startEdit">{{ todo.title }}</span>
+      <button
+        class="fullscreen-btn"
+        title="Open full screen"
+        @click.stop="$emit('open-fullscreen')"
+      >
+        <Maximize2 :size="14" />
+      </button>
       <button class="archive-btn" title="Archive" @click.stop="$emit('archive')">
         <Archive :size="14" />
       </button>
@@ -111,7 +118,7 @@
 
 <script>
   import NotesEditor from './NotesEditor.vue'
-  import { Archive, Trash2 } from 'lucide-vue-next'
+  import { Archive, Maximize2, Trash2 } from 'lucide-vue-next'
   import cardInteractionsMixin from './cardInteractionsMixin.js'
 
   export default {
@@ -119,6 +126,7 @@
     components: {
       NotesEditor,
       Archive,
+      Maximize2,
       Trash2
     },
     mixins: [cardInteractionsMixin],
@@ -147,7 +155,8 @@
       'update-title',
       'update-notes',
       'archive',
-      'set-due-date'
+      'set-due-date',
+      'open-fullscreen'
     ],
     computed: {
       subtaskProgress() {

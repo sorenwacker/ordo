@@ -331,7 +331,8 @@
   color: var(--text-muted);
 }
 
-.light-theme .todo-card .card-header .archive-btn {
+.light-theme .todo-card .card-header .archive-btn,
+.light-theme .todo-card .card-header .fullscreen-btn {
   color: var(--text-muted);
 }
 
@@ -662,3 +663,26 @@
   border: 1px solid var(--border-color);
 }
 
+
+.light-theme .card-fullscreen {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.light-theme .fullscreen-content {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.light-theme .fullscreen-title,
+.light-theme .fullscreen-close:hover {
+  color: var(--text-primary);
+}
+
+.light-theme .fullscreen-title-input {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.light-theme .fullscreen-close {
+  color: var(--text-muted);
+}

@@ -380,7 +380,8 @@
   color: #ff6b6b;
 }
 
-.todo-card .card-header .archive-btn {
+.todo-card .card-header .archive-btn,
+.todo-card .card-header .fullscreen-btn {
   background: transparent;
   border: none;
   color: #ccc;
@@ -392,7 +393,8 @@
   transition: opacity 0.15s;
 }
 
-.todo-card:hover .card-header .archive-btn {
+.todo-card:hover .card-header .archive-btn,
+.todo-card:hover .card-header .fullscreen-btn {
   opacity: 1;
 }
 

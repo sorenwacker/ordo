@@ -38,6 +38,7 @@ network dependency.
 - [Kanban view](docs/kanban.md) — the two board layouts and when each one renders
 - [Notes](docs/notes.md) — the markdown pipeline and editor shared by todo and project notes
 - [Inline editing](docs/editing.md) — where editing happens in place and how edit sessions survive an application switch
+- [Full-screen card](docs/fullscreen.md) — opening a card in an overlay that covers the window
 
 ## Installation
 

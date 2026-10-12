@@ -155,3 +155,13 @@ describe('KanbanCard title clicks do not disturb the card', () => {
     expect(wrapper.find('.card-title-input').exists()).toBe(true)
   })
 })
+
+describe('KanbanCard full-screen button', () => {
+  it('emits open-fullscreen without selecting the card', async () => {
+    const wrapper = mount(KanbanCard, { props: { todo: makeTodo() } })
+    await wrapper.get('.fullscreen-btn').trigger('click')
+    expect(wrapper.emitted('open-fullscreen')).toHaveLength(1)
+    expect(wrapper.emitted('select')).toBeUndefined()
+    expect(wrapper.emitted('toggle-complete')).toBeUndefined()
+  })
+})

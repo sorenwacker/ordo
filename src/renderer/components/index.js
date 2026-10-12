@@ -1,5 +1,6 @@
 export { default as AppHeader } from './AppHeader.vue'
 export { default as AppSidebar } from './AppSidebar.vue'
+export { default as CardFullscreen } from './CardFullscreen.vue'
 export { default as CardItem } from './CardItem.vue'
 export { default as CardsView } from './CardsView.vue'
 export { default as HelpModal } from './HelpModal.vue'

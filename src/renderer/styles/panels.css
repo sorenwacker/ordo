@@ -9,10 +9,10 @@
 
 .kanban-column {
   flex: 1 1 280px;
-  /* Everything in a card header but the title is fixed width, so 149px of a
+  /* Everything in a card header but the title is fixed width, so 181px of a
      column is spent before the title gets any. Below this floor the title wraps
      one character per line; the board scrolls sideways instead. */
-  min-width: 260px;
+  min-width: 300px;
   background: #1a1a1a;
   border-radius: 12px;
   padding: 16px;
@@ -156,7 +156,8 @@
   color: #ff6b6b;
 }
 
-.kanban-card .archive-btn {
+.kanban-card .archive-btn,
+.kanban-card .fullscreen-btn {
   opacity: 0;
   background: transparent;
   border: none;
@@ -169,7 +170,8 @@
   flex-shrink: 0;
 }
 
-.kanban-card:hover .archive-btn {
+.kanban-card:hover .archive-btn,
+.kanban-card:hover .fullscreen-btn {
   opacity: 1;
 }
 
