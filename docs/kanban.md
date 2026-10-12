@@ -54,6 +54,14 @@ There is no ceiling. Columns share the full board width, so a board with few col
 
 `tests/kanbanLayout.test.js` gates the arithmetic: it reads the widths back out of the stylesheets and fails if the furniture grows or the floor drops far enough to squeeze the title.
 
+## Column height
+
+On the status board the columns fill the height of the window below the header, however few cards they hold. `.kanban-view-wrapper > .kanban-view` takes the wrapper's remaining height with `flex: 1`, and the columns stretch to the board as flex items. A column with more cards than fit scrolls inside its card list; the board itself does not grow.
+
+The grouped board stacks one board per project, so there its columns take their natural height and are capped at `calc(100vh - 200px)` by `.kanban-stacked .kanban-column`, with the same inner scrolling. Without the cap, one long project would push every section below it off screen.
+
+`tests/kanbanLayout.test.js` fails if `.kanban-column` itself regains a `max-height`, which would cut the status board short again, or if the board rule loses its `flex: 1`.
+
 ## Card styling
 
 A kanban card and a cards-view card render the same sub-elements from the same class names: `card-header`, `card-meta`, `card-project`, `card-deadline`, `card-dates-info`, `card-subtasks`, `card-notes-preview`. Each of those is styled by an unscoped base rule that both card types pick up, with `.todo-card`-scoped rules layered on top only where the cards view differs.

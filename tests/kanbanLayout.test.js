@@ -95,6 +95,23 @@ describe('kanban column width', () => {
   })
 })
 
+describe('kanban column height', () => {
+  const columnBlocks = blocksFor('.kanban-column')
+  const boardBlocks = blocksFor('.kanban-view-wrapper > .kanban-view')
+  const stackedColumnBlocks = blocksFor('.kanban-stacked .kanban-column')
+
+  // The status board's columns stretch to the board, which fills the wrapper.
+  // A max-height on the bare column selector would cut that short.
+  it('lets the status board fill its wrapper', () => {
+    expect(boardBlocks.some((block) => /flex\s*:\s*1\b/.test(block))).toBe(true)
+  })
+
+  it('caps column height only on the grouped board', () => {
+    expect(columnBlocks.some((block) => /max-height\s*:/.test(block))).toBe(false)
+    expect(stackedColumnBlocks.some((block) => /max-height\s*:/.test(block))).toBe(true)
+  })
+})
+
 /**
  * Every (selector, body) pair in the stylesheets. Media query wrappers fall out
  * on their own: their body contains a nested block, so it never matches.

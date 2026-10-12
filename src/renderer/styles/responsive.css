@@ -275,6 +275,9 @@
 
   .kanban-column {
     flex: 0 0 85vw;
+  }
+
+  .kanban-stacked .kanban-column {
     max-height: 60vh;
   }
 

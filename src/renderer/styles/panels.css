@@ -7,6 +7,17 @@
   min-height: 400px;
 }
 
+/* The status board fills the wrapper, so its columns stretch to the window;
+   the grouped board stacks several boards and caps each column instead. */
+.kanban-view-wrapper > .kanban-view {
+  flex: 1;
+  min-height: 0;
+}
+
+.kanban-stacked .kanban-column {
+  max-height: calc(100vh - 200px);
+}
+
 .kanban-column {
   flex: 1 1 280px;
   /* Everything in a card header but the title is fixed width, so 181px of a
@@ -18,7 +29,7 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 200px);
+  min-height: 0;
   border-top: 4px solid #333;
   overflow: hidden;
 }
