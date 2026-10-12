@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 import KanbanView from '../src/renderer/components/KanbanView.vue'
 import todoActionsMixin from '../src/renderer/mixins/todoActionsMixin.js'
 import { useTodos } from '../src/renderer/composables/useTodos.js'
+import { draggableStub } from './helpers/draggableStub.js'
 
 const STATUSES = [
   { id: 10, name: 'Todo', color: '#aaa' },
@@ -274,12 +275,6 @@ describe('KanbanView Done column visibility', () => {
   })
 })
 
-const draggableStub = {
-  props: ['modelValue'],
-  template:
-    '<div><template v-for="element in modelValue" :key="element.id"><slot name="item" :element="element" /></template></div>'
-}
-
 // A mouse-down anywhere on the board that is not a card clears the selection
 // (see docs/selection.md).
 describe('KanbanView canvas click', () => {
@@ -318,5 +313,16 @@ describe('clearSelection', () => {
   it('is wired to both views by the application', () => {
     const app = readFileSync(resolve(import.meta.dirname, '../src/renderer/App.vue'), 'utf8')
     expect(app.match(/@clear-selection="clearSelection"/g)).toHaveLength(2)
+  })
+})
+
+describe('KanbanView secondary button', () => {
+  it('does not clear the selection on a right-button press', async () => {
+    const wrapper = mount(KanbanView, {
+      props: { statuses: STATUSES, allTodos: [] },
+      global: { stubs: { draggable: draggableStub } }
+    })
+    await wrapper.get('.column-header').trigger('mousedown', { button: 2 })
+    expect(wrapper.emitted('clear-selection')).toBeUndefined()
   })
 })

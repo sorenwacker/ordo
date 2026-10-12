@@ -318,6 +318,36 @@ function setShowCompleted(show) {
 }
 
 /**
+ * Replace the multi-selection.
+ * @param {Iterable<number>} ids - Ids of the todos to select
+ */
+function setSelectedTodoIds(ids) {
+  state.selectedTodoIds = new Set(ids)
+}
+
+/**
+ * Add a todo to the multi-selection, or remove it when already selected.
+ * @param {number} id - Todo id
+ */
+function toggleSelectedTodoId(id) {
+  const next = new Set(state.selectedTodoIds)
+  if (next.has(id)) {
+    next.delete(id)
+  } else {
+    next.add(id)
+  }
+  state.selectedTodoIds = next
+}
+
+/**
+ * Drop the multi-selection and the keyboard focus (see docs/selection.md).
+ */
+function clearSelection() {
+  state.selectedTodoIds = new Set()
+  state.focusedTodoIndex = -1
+}
+
+/**
  * Set sort criteria.
  * @param {string} sortBy - Sort criteria ('created', 'alpha', or 'manual')
  */
@@ -391,6 +421,9 @@ export function useTodos() {
     setSearchQuery,
     setShowCompleted,
     setSortBy,
+    setSelectedTodoIds,
+    toggleSelectedTodoId,
+    clearSelection,
 
     // Utilities
     toPlainTodo,

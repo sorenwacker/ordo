@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versions corres
 
 ## Unreleased
 
+### Fixed
+
+- Marquee selection in the cards view applies again. The selection it built was written to a read-only property and dropped, so the drag drew a box and selected nothing. Selection writes now go through the composable that owns the state, and a test fails if the application assigns to it directly. See [Selecting cards](docs/selection.md).
+
 ### Added
 
 - A click on the empty canvas of the cards view or the kanban board clears the selection and the keyboard focus. See [Selecting cards](docs/selection.md).

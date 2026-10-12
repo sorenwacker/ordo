@@ -7,6 +7,7 @@ import CardFullscreen from '../src/renderer/components/CardFullscreen.vue'
 import CardsView from '../src/renderer/components/CardsView.vue'
 import KanbanView from '../src/renderer/components/KanbanView.vue'
 import NotesEditor from '../src/renderer/components/NotesEditor.vue'
+import { draggableStub } from './helpers/draggableStub.js'
 
 function makeTodo(overrides = {}) {
   return {
@@ -29,14 +30,6 @@ function makeTodo(overrides = {}) {
 
 function press(key) {
   window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
-}
-
-// The views render their cards through vuedraggable; this stub renders the
-// item slot once per element so the real card is in the tree.
-const draggableStub = {
-  props: ['modelValue'],
-  template:
-    '<div><template v-for="element in modelValue" :key="element.id"><slot name="item" :element="element" /></template></div>'
 }
 
 // Every overlay owns a window keydown listener, so each one is unmounted

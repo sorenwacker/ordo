@@ -109,6 +109,7 @@
 <script>
   import draggable from 'vuedraggable'
   import CardItem from './CardItem.vue'
+  import { isCanvasMouseDown } from '../utils/canvas.js'
   import { CARD_MIN_WIDTHS, DEFAULT_CARD_WIDTH } from '../utils/cardWidth.js'
 
   export default {
@@ -227,10 +228,7 @@
       },
       // Marquee selection methods
       onContainerMouseDown(event) {
-        // Only start selection if clicking on empty space (not on a card or interactive element)
-        const target = event.target
-        const isCard = target.closest('.todo-card, .kanban-card, button, input, select, a')
-        if (isCard) return
+        if (!isCanvasMouseDown(event)) return
 
         // Empty space: drop the current selection before a marquee may build
         // a new one (see docs/selection.md).

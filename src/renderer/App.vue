@@ -881,24 +881,16 @@
 
         // Multi-select with Ctrl/Cmd+click
         if (event.ctrlKey || event.metaKey) {
-          if (this.selectedTodoIds.has(id)) {
-            this.selectedTodoIds.delete(id)
-          } else {
-            this.selectedTodoIds.add(id)
-          }
-          // Trigger reactivity
-          this.selectedTodoIds = new Set(this.selectedTodoIds)
+          this.todosComposable.toggleSelectedTodoId(id)
           return
         }
 
         // Normal click - clear multi-select and select single
-        this.selectedTodoIds.clear()
-        this.selectedTodoIds = new Set()
+        this.clearSelection()
         this.selectTodo(id)
       },
       handleMarqueeSelect(ids) {
-        // Set the selected IDs from marquee selection
-        this.selectedTodoIds = new Set(ids)
+        this.todosComposable.setSelectedTodoIds(ids)
       },
       selectTodo(id) {
         const index = this.todos.findIndex((t) => t.id === id)

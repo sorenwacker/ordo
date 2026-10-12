@@ -182,6 +182,7 @@
 <script>
   import draggable from 'vuedraggable'
   import KanbanCard from './KanbanCard.vue'
+  import { isCanvasMouseDown } from '../utils/canvas.js'
   import { findDoneStatus } from '../utils/doneStatus.js'
 
   export default {
@@ -281,11 +282,8 @@
       onStackedKanbanDrop(event) {
         this.$emit('stacked-kanban-drop', event)
       },
-      // Anywhere on the board that is not a card or a control is canvas, and a
-      // mouse-down there drops the selection (see docs/selection.md).
       onCanvasMouseDown(event) {
-        if (event.target.closest('.kanban-card, button, input, select, a')) return
-        this.$emit('clear-selection')
+        if (isCanvasMouseDown(event)) this.$emit('clear-selection')
       },
       onDragOver(event) {
         const kanbanView = this.$refs.kanbanView

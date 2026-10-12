@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import CardsView from '../src/renderer/components/CardsView.vue'
 import { CARD_MIN_WIDTHS } from '../src/renderer/utils/cardWidth.js'
+import { draggableStub } from './helpers/draggableStub.js'
 
 // The card grid is an auto-fill grid: the chosen minimum width reaches the CSS
 // as --card-min-width and decides how many columns fit.
@@ -16,14 +17,6 @@ describe('CardsView card width', () => {
     )
   })
 })
-
-// The views render their cards through vuedraggable; this stub renders the
-// item slot once per element so a real card is in the tree.
-const draggableStub = {
-  props: ['modelValue'],
-  template:
-    '<div><template v-for="element in modelValue" :key="element.id"><slot name="item" :element="element" /></template></div>'
-}
 
 // A mouse-down on empty space clears the selection; one on a card does not,
 // since the card's own click handles selection (see docs/selection.md).

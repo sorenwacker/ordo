@@ -1,6 +1,6 @@
 /**
  * App-level todo actions: creation, completion, editing, archiving, trash,
- * drag-and-drop persistence, and manual ordering.
+ * drag-and-drop persistence, manual ordering, and clearing the selection.
  *
  * The host component must provide `todosComposable` and `projectsComposable`
  * (from setup), the `loadAllTodos`/`loadTodos` methods, `selectTodo`, and the
@@ -26,11 +26,9 @@ function parseDropZoneId(value) {
 
 export default {
   methods: {
-    // Drops both the multi-selection and the keyboard focus; the views emit
-    // `clear-selection` on a canvas click (see docs/selection.md).
+    // The views emit `clear-selection` on a canvas click (see docs/selection.md).
     clearSelection() {
-      this.todosComposable.selectedTodoIds.value = new Set()
-      this.todosComposable.focusedTodoIndex.value = -1
+      this.todosComposable.clearSelection()
     },
     updateStatusTodos(_statusId, _todos) {
       // Used by draggable for reactive updates
