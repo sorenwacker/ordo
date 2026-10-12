@@ -10,9 +10,9 @@ All notable changes to this project are documented in this file. Versions corres
 
 ### Changed
 
+- Sidebar badges show the number of open todos instead of `done/total`, and a row with nothing open shows no badge. See [Sidebar counts](docs/sidebar.md).
 - The kanban column floor rose from 260px to 280px to make room for the third header button without squeezing the title. The header buttons are grouped with a small gap so the rise stays small.
 - Kanban columns on the status board fill the window height instead of stopping at the tallest column. The grouped board keeps its per-section height cap, since its boards stack.
-
 - The kanban board no longer renders the Done column while "Show done" is off. Completed cards were already hidden, so the column could only ever be empty and spent a column's width on nothing. Turning "Show done" on brings the column back with the completed cards in it. See [Kanban view](docs/kanban.md).
 - Kanban columns no longer have a maximum width. They were capped at 400px, so a board with few columns left an empty strip on the right of a wide window. Columns now share the full board width; the minimum width and the horizontal scroll below it are unchanged.
 
