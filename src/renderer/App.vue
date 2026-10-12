@@ -237,6 +237,7 @@
                 @move-to-project="moveToProject"
                 @set-due-date="setDueDate"
                 @open-fullscreen="fullscreenTodoId = $event.id"
+                @clear-selection="clearSelection"
               />
 
               <!-- Kanban View -->
@@ -264,6 +265,7 @@
                 @archive-todo="archiveTodo"
                 @set-due-date="setDueDate"
                 @open-fullscreen="fullscreenTodoId = $event.id"
+                @clear-selection="clearSelection"
               />
 
               <div

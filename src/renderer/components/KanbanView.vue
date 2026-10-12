@@ -1,6 +1,7 @@
 <template>
   <div
     class="kanban-view-wrapper"
+    @mousedown="onCanvasMouseDown"
     @dragover="onDragOver"
     @dragend="onDragEnd"
     @dragleave="onDragEnd"
@@ -239,7 +240,8 @@
       'update-notes',
       'archive-todo',
       'set-due-date',
-      'open-fullscreen'
+      'open-fullscreen',
+      'clear-selection'
     ],
     data() {
       return {
@@ -278,6 +280,12 @@
       },
       onStackedKanbanDrop(event) {
         this.$emit('stacked-kanban-drop', event)
+      },
+      // Anywhere on the board that is not a card or a control is canvas, and a
+      // mouse-down there drops the selection (see docs/selection.md).
+      onCanvasMouseDown(event) {
+        if (event.target.closest('.kanban-card, button, input, select, a')) return
+        this.$emit('clear-selection')
       },
       onDragOver(event) {
         const kanbanView = this.$refs.kanbanView

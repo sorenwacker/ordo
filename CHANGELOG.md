@@ -6,6 +6,7 @@ All notable changes to this project are documented in this file. Versions corres
 
 ### Added
 
+- A click on the empty canvas of the cards view or the kanban board clears the selection and the keyboard focus. See [Selecting cards](docs/selection.md).
 - Every card has a full-screen button that opens it in an overlay covering the window, with the title, project, due date and notes. Title and notes edit in place as on the card; Escape, the close button and a click on the backdrop close it, saving an open editor first. See [Full-screen card](docs/fullscreen.md).
 
 ### Changed

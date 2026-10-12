@@ -40,6 +40,7 @@ network dependency.
 - [Inline editing](docs/editing.md) — where editing happens in place and how edit sessions survive an application switch
 - [Full-screen card](docs/fullscreen.md) — opening a card in an overlay that covers the window
 - [Count badges](docs/sidebar.md) — what the badges on sidebar rows and overview tiles count
+- [Selecting cards](docs/selection.md) — keyboard focus, multi-selection, and what clears them
 
 ## Installation
 

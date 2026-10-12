@@ -26,6 +26,12 @@ function parseDropZoneId(value) {
 
 export default {
   methods: {
+    // Drops both the multi-selection and the keyboard focus; the views emit
+    // `clear-selection` on a canvas click (see docs/selection.md).
+    clearSelection() {
+      this.todosComposable.selectedTodoIds.value = new Set()
+      this.todosComposable.focusedTodoIndex.value = -1
+    },
     updateStatusTodos(_statusId, _todos) {
       // Used by draggable for reactive updates
     },

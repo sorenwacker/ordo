@@ -192,7 +192,8 @@
       'archive-todo',
       'move-to-project',
       'set-due-date',
-      'open-fullscreen'
+      'open-fullscreen',
+      'clear-selection'
     ],
     data() {
       return {
@@ -230,6 +231,10 @@
         const target = event.target
         const isCard = target.closest('.todo-card, .kanban-card, button, input, select, a')
         if (isCard) return
+
+        // Empty space: drop the current selection before a marquee may build
+        // a new one (see docs/selection.md).
+        this.$emit('clear-selection')
 
         // Get position relative to container
         const container = this.$refs.cardsViewRef
