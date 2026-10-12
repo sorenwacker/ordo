@@ -39,3 +39,51 @@ describe('AppSidebar add inputs across an application switch', () => {
     wrapper.unmount()
   })
 })
+
+// Badges count what is still open; the done count was noise on every row that
+// had any (see docs/sidebar.md).
+describe('AppSidebar count badges', () => {
+  const projects = [
+    { id: 1, name: 'Open work', color: '#f00' },
+    { id: 2, name: 'Finished', color: '#0f0' }
+  ]
+  const stubs = {
+    draggable: {
+      props: ['modelValue'],
+      template:
+        '<div><template v-for="element in modelValue" :key="element.id"><slot name="item" :element="element" /></template></div>'
+    }
+  }
+
+  function badges(wrapper) {
+    return wrapper.findAll('.project-item').map((row) => ({
+      name: row.get('.project-name').text(),
+      badge: row.find('.count').exists() ? row.get('.count').text() : null
+    }))
+  }
+
+  it('shows only the open count on a project row', () => {
+    const wrapper = mount(AppSidebar, {
+      props: { projects, projectCounts: { 1: { done: 3, total: 8 }, 2: { done: 8, total: 8 } } },
+      global: { stubs }
+    })
+    expect(badges(wrapper)).toEqual([
+      { name: 'Open work', badge: '5' },
+      { name: 'Finished', badge: null }
+    ])
+  })
+
+  it('shows the open count on the All row and hides it at zero', () => {
+    const open = mount(AppSidebar, {
+      props: { allCount: { done: 44, total: 112 } },
+      global: { stubs }
+    })
+    expect(open.get('.nav-item .count').text()).toBe('68')
+
+    const empty = mount(AppSidebar, {
+      props: { allCount: { done: 5, total: 5 } },
+      global: { stubs }
+    })
+    expect(empty.find('.nav-item .count').exists()).toBe(false)
+  })
+})

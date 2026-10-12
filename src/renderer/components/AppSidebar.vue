@@ -45,7 +45,7 @@
       >
         <List :size="16" class="nav-icon" />
         <span>All</span>
-        <span class="count">{{ formatProgress(allCount) }}</span>
+        <span v-if="openCount(allCount) > 0" class="count">{{ openCount(allCount) }}</span>
       </div>
 
       <div
@@ -98,7 +98,9 @@
           >
             <span class="project-dot" :style="{ background: project.color }"></span>
             <span class="project-name">{{ project.name }}</span>
-            <span class="count">{{ formatProgress(getProjectCount(project.id)) }}</span>
+            <span v-if="openCount(getProjectCount(project.id)) > 0" class="count">{{
+              openCount(getProjectCount(project.id))
+            }}</span>
             <button
               class="edit-btn"
               title="Edit project"
@@ -285,11 +287,9 @@
       }
     },
     methods: {
-      formatProgress(count) {
-        if (!count || typeof count !== 'object') return count || 0
-        if (count.total === 0) return ''
-        if (count.done === 0) return count.total
-        return `${count.done}/${count.total}`
+      // Todos not yet completed; the badge is what still needs doing.
+      openCount(count) {
+        return count.total - count.done
       },
       getProjectCount(projectId) {
         return this.projectCounts[projectId] || { done: 0, total: 0 }
