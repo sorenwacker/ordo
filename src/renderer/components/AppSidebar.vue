@@ -192,6 +192,7 @@
 
 <script>
   import draggable from 'vuedraggable'
+  import { openCount } from '../utils/counts.js'
   import { List, Archive, Trash2, ChevronRight, ChevronDown } from 'lucide-vue-next'
   import { useAddInput } from '../composables/useAddInput'
 
@@ -287,10 +288,7 @@
       }
     },
     methods: {
-      // Todos not yet completed; the badge is what still needs doing.
-      openCount(count) {
-        return count.total - count.done
-      },
+      openCount,
       getProjectCount(projectId) {
         return this.projectCounts[projectId] || { done: 0, total: 0 }
       },

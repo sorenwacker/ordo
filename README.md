@@ -39,7 +39,7 @@ network dependency.
 - [Notes](docs/notes.md) — the markdown pipeline and editor shared by todo and project notes
 - [Inline editing](docs/editing.md) — where editing happens in place and how edit sessions survive an application switch
 - [Full-screen card](docs/fullscreen.md) — opening a card in an overlay that covers the window
-- [Sidebar counts](docs/sidebar.md) — what the badge on each sidebar row counts
+- [Count badges](docs/sidebar.md) — what the badges on sidebar rows and overview tiles count
 
 ## Installation
 

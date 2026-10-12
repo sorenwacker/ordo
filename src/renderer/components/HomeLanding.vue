@@ -14,7 +14,9 @@
         @drop.prevent="dropOnProject(project.id)"
       >
         <span class="project-name">{{ project.name }}</span>
-        <span class="project-count">{{ formatProgress(projectCounts[project.id]) }}</span>
+        <span v-if="openCount(projectCounts[project.id]) > 0" class="project-count">{{
+          openCount(projectCounts[project.id])
+        }}</span>
       </div>
     </div>
 
@@ -48,6 +50,7 @@
 
 <script>
   import CardItem from './CardItem.vue'
+  import { openCount } from '../utils/counts.js'
 
   export default {
     name: 'HomeLanding',
@@ -77,12 +80,7 @@
       }
     },
     methods: {
-      formatProgress(count) {
-        if (!count || typeof count !== 'object') return count || 0
-        if (count.total === 0) return ''
-        if (count.done === 0) return count.total
-        return `${count.done}/${count.total}`
-      },
+      openCount,
       onInboxDragStart(event, todo) {
         this.draggingTodo = todo
         event.dataTransfer.effectAllowed = 'move'
