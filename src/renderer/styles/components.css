@@ -540,7 +540,7 @@
   align-items: stretch;
   justify-content: center;
   padding: 24px;
-  z-index: 100;
+  z-index: 1100;
 }
 
 .fullscreen-content {

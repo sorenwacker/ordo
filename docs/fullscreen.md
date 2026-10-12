@@ -18,6 +18,10 @@ The overlay closes on the close button, on a click on the backdrop outside the c
 
 Escape is handled in two steps when an editor is open. The first Escape leaves the editor: a title edit is discarded, as on the card, and a notes edit is saved. The second Escape closes the overlay. While the overlay is open, Escape does not reach the application's global shortcut handler, which would otherwise also clear the list selection.
 
+## Stacking
+
+The overlay is a fixed element at the application root. The sticky main header and the sidebar carry their own `z-index` so they stay above scrolling content, and the sidebar toggle sits above both; an overlay below any of them is drawn with that element poking through. `.card-fullscreen` is therefore stacked above all of them, below only the database error banner, and `tests/CardFullscreen.test.js` reads the values back out of the stylesheets and fails if any of those elements rises above the overlay.
+
 ## Column width
 
 The button is a third icon button in the kanban card header, which raised the fixed width a card header spends before its title gets any space. The kanban column floor was raised to match; the arithmetic is in [Kanban view](kanban.md).

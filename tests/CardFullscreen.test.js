@@ -174,6 +174,37 @@ describe('CardFullscreen', () => {
   })
 })
 
+describe('full-screen stacking', () => {
+  const css = ['base.css', 'content.css', 'components.css']
+    .map((file) =>
+      readFileSync(resolve(import.meta.dirname, '../src/renderer/styles', file), 'utf8')
+    )
+    .join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+
+  function zIndex(selector) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const block = css.match(new RegExp(`(?:^|[{};])\\s*${escaped}\\s*\\{([^}]*)\\}`))
+    const value = block?.[1].match(/z-index\s*:\s*(\d+)/)
+    return value ? Number(value[1]) : null
+  }
+
+  // The header, the sidebar and its toggle each have a z-index of their own;
+  // the overlay must sit above every one of them or it is drawn through.
+  it('stacks the overlay above the header and the sidebar', () => {
+    const overlay = zIndex('.card-fullscreen')
+    expect(overlay).not.toBeNull()
+    for (const selector of [
+      '.main-header',
+      '.sidebar',
+      '.sidebar-toggle',
+      '.sidebar-hover-trigger'
+    ]) {
+      expect(zIndex(selector), selector).toBeLessThan(overlay)
+    }
+  })
+})
+
 describe('full-screen wiring', () => {
   it('CardsView forwards open-fullscreen with the todo', async () => {
     const todo = makeTodo()
