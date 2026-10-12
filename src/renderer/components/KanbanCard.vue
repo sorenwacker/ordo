@@ -49,19 +49,21 @@
         @click.stop
       />
       <span v-else class="card-title" @click.stop @dblclick.stop="startEdit">{{ todo.title }}</span>
-      <button
-        class="fullscreen-btn"
-        title="Open full screen"
-        @click.stop="$emit('open-fullscreen')"
-      >
-        <Maximize2 :size="14" />
-      </button>
-      <button class="archive-btn" title="Archive" @click.stop="$emit('archive')">
-        <Archive :size="14" />
-      </button>
-      <button class="card-delete-btn" title="Delete" @click.stop="$emit('delete')">
-        <Trash2 :size="14" />
-      </button>
+      <div class="card-actions">
+        <button
+          class="fullscreen-btn"
+          title="Open full screen"
+          @click.stop="$emit('open-fullscreen')"
+        >
+          <Maximize2 :size="14" />
+        </button>
+        <button class="archive-btn" title="Archive" @click.stop="$emit('archive')">
+          <Archive :size="14" />
+        </button>
+        <button class="card-delete-btn" title="Delete" @click.stop="$emit('delete')">
+          <Trash2 :size="14" />
+        </button>
+      </div>
     </div>
     <div v-if="(showProject && todo.project_name) || todo.end_date" class="card-meta">
       <span

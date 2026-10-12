@@ -24,7 +24,7 @@ The overlay is a fixed element at the application root. The sticky main header a
 
 ## Column width
 
-The button is a third icon button in the kanban card header, which raised the fixed width a card header spends before its title gets any space. The kanban column floor was raised to match; the arithmetic is in [Kanban view](kanban.md).
+The button is a third icon button in the kanban card header, which raised the fixed width a card header spends before its title gets any space. The three buttons are grouped with a 2px gap to keep that rise small, and the kanban column floor was raised to match; the arithmetic is in [Kanban view](kanban.md).
 
 ## Gates
 

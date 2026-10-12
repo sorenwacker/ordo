@@ -77,61 +77,63 @@
         @click.stop
       />
       <span v-else class="card-title" @click.stop @dblclick.stop="startEdit">{{ todo.title }}</span>
-      <button
-        class="fullscreen-btn"
-        title="Open full screen"
-        @click.stop="$emit('open-fullscreen')"
-      >
-        <Maximize2 :size="14" />
-      </button>
-      <template v-if="isTrashView">
+      <div class="card-actions">
         <button
-          class="restore-btn"
-          title="Restore from trash (Ctrl+Z to undo)"
-          @click.stop="$emit('restore')"
+          class="fullscreen-btn"
+          title="Open full screen"
+          @click.stop="$emit('open-fullscreen')"
         >
-          <RotateCcw :size="14" />
+          <Maximize2 :size="14" />
         </button>
-        <button
-          class="delete-btn permanent"
-          title="Delete permanently (cannot be undone)"
-          @click.stop="$emit('permanent-delete')"
-        >
-          <Trash2 :size="14" />
-        </button>
-      </template>
-      <template v-else-if="isArchiveView">
-        <button
-          class="restore-btn"
-          title="Unarchive - move back to active (Ctrl+Z to undo)"
-          @click.stop="$emit('unarchive')"
-        >
-          <RotateCcw :size="14" />
-        </button>
-        <button
-          class="delete-btn"
-          title="Move to trash (Ctrl+Z to undo)"
-          @click.stop="$emit('delete')"
-        >
-          <Trash2 :size="14" />
-        </button>
-      </template>
-      <template v-else>
-        <button
-          class="archive-btn"
-          title="Archive - hide from active view (Ctrl+Z to undo)"
-          @click.stop="$emit('archive')"
-        >
-          <Archive :size="14" />
-        </button>
-        <button
-          class="delete-btn"
-          title="Move to trash (Ctrl+Z to undo)"
-          @click.stop="$emit('delete')"
-        >
-          <Trash2 :size="14" />
-        </button>
-      </template>
+        <template v-if="isTrashView">
+          <button
+            class="restore-btn"
+            title="Restore from trash (Ctrl+Z to undo)"
+            @click.stop="$emit('restore')"
+          >
+            <RotateCcw :size="14" />
+          </button>
+          <button
+            class="delete-btn permanent"
+            title="Delete permanently (cannot be undone)"
+            @click.stop="$emit('permanent-delete')"
+          >
+            <Trash2 :size="14" />
+          </button>
+        </template>
+        <template v-else-if="isArchiveView">
+          <button
+            class="restore-btn"
+            title="Unarchive - move back to active (Ctrl+Z to undo)"
+            @click.stop="$emit('unarchive')"
+          >
+            <RotateCcw :size="14" />
+          </button>
+          <button
+            class="delete-btn"
+            title="Move to trash (Ctrl+Z to undo)"
+            @click.stop="$emit('delete')"
+          >
+            <Trash2 :size="14" />
+          </button>
+        </template>
+        <template v-else>
+          <button
+            class="archive-btn"
+            title="Archive - hide from active view (Ctrl+Z to undo)"
+            @click.stop="$emit('archive')"
+          >
+            <Archive :size="14" />
+          </button>
+          <button
+            class="delete-btn"
+            title="Move to trash (Ctrl+Z to undo)"
+            @click.stop="$emit('delete')"
+          >
+            <Trash2 :size="14" />
+          </button>
+        </template>
+      </div>
     </div>
     <div v-if="(todo.project_name && showProject) || todo.end_date" class="card-meta">
       <span

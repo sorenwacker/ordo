@@ -12,7 +12,8 @@ const css = ['panels.css', 'responsive.css']
 // stylesheet, measured in Chrome against the real card markup.
 const CHECKBOX_WIDTH = 16
 const ICON_BUTTON_WIDTH = 22 // lucide icon at :size="14" plus 4px padding either side
-const HEADER_GAPS = 4 // checkbox | title | full screen | archive | delete
+const HEADER_GAPS = 2 // checkbox | title | button group
+const ACTION_GAPS = 2 // full screen | archive | delete
 
 // A title narrower than this wraps to a couple of characters per line, which is
 // the failure the floor exists to prevent.
@@ -59,6 +60,7 @@ describe('kanban column width', () => {
   const columnBlocks = blocksFor('.kanban-column')
   const cardBlocks = blocksFor('.kanban-card')
   const headerBlocks = blocksFor('.card-header')
+  const actionBlocks = blocksFor('.card-actions')
 
   // Everything in a card header except the title is fixed width and does not
   // shrink, so it is spent before the title gets any space.
@@ -68,6 +70,7 @@ describe('kanban column width', () => {
     px(cardBlocks, 'border-left') +
     CHECKBOX_WIDTH +
     3 * ICON_BUTTON_WIDTH +
+    ACTION_GAPS * px(actionBlocks, 'gap') +
     HEADER_GAPS * px(headerBlocks, 'gap')
 
   it('reads the furniture widths back out of the stylesheets', () => {
@@ -75,7 +78,8 @@ describe('kanban column width', () => {
     expect(px(cardBlocks, 'padding')).toBe(12)
     expect(px(cardBlocks, 'border-left')).toBe(3)
     expect(px(headerBlocks, 'gap')).toBe(10)
-    expect(furniture).toBe(181)
+    expect(px(actionBlocks, 'gap')).toBe(2)
+    expect(furniture).toBe(165)
   })
 
   it('declares a column floor at every breakpoint that uses one', () => {
