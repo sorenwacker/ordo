@@ -9,6 +9,10 @@ All notable changes to this project are documented in this file. Versions corres
 - Escape clears the multi-selection, as the help modal has always said. It only dropped the keyboard focus, so a Cmd-click selection kept glowing until a canvas click. See [Selecting cards](docs/selection.md).
 - The arrow keys, `j`/`k` and the other single-card shortcuts walk the cards as they are rendered. They indexed the unfiltered, unsorted list, so a done card hidden while "Show done" was off cost an extra press, any sort other than manual made the focus jump about in creation order, and a search could focus a card that was not on screen. See [Selecting cards](docs/selection.md).
 
+### Security
+
+- Thirteen Dependabot updates merged. Electron moves from 39.8.10 to 41.10.6, mermaid from 11.12.2 to 12.2.0, vitest from 4.0.15 to 4.1.11, dompurify from 3.4.13 to 3.4.16 and vue from 3.5.25 to 3.5.44 (GHSA-g2v6-rqmx-r4w6 in @vue/server-renderer). Lockfile-only in the app: undici to 6.29.0 and 7.30.0 (GHSA-rfgv-xxqx-mfg5, GHSA-3wwx-pv8p-q78v, GHSA-r53p-7pc4-xj5r), js-yaml to 4.3.2, brace-expansion, katex, source-map-js, fast-uri to 3.1.8 (GHSA-hrr3-gc8f-f4qj) and http-cache-semantics to 4.3.0 (GHSA-ch52-4w7c-c8xp). In the MCP server: hono to 4.13.7, ip-address to 10.7.2, fast-uri to 3.1.8, proxy-addr to 2.0.8 and @modelcontextprotocol/sdk to 1.31.0. `npm audit` reports no vulnerabilities in the MCP server. The app tree still reports sprintf-js (GHSA-hp3w-g68c-fv3c) reached only through electron-builder's build-time tooling; the fix needs electron-builder 27, which is a prerelease.
+
 ## 0.9.0 - 261013
 
 ### Fixed
