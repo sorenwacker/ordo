@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { isCanvasMouseDown } from '../src/renderer/utils/canvas.js'
 import { useTodos } from '../src/renderer/composables/useTodos.js'
+import keyboardShortcutsMixin from '../src/renderer/mixins/keyboardShortcutsMixin.js'
 
 function mouseDown(target, overrides = {}) {
   return { button: 0, clientX: 5, clientY: 5, target, ...overrides }
@@ -78,5 +79,40 @@ describe('selection writes', () => {
     const app = readFileSync(resolve(import.meta.dirname, '../src/renderer/App.vue'), 'utf8')
     expect(app).not.toMatch(/this\.selectedTodoIds\s*=/)
     expect(app).not.toMatch(/this\.selectedTodoIds\.(clear|add|delete)\(/)
+  })
+})
+
+describe('Escape', () => {
+  function escapeHost(overrides = {}) {
+    return {
+      navigableTodos: [],
+      focusedTodoIndex: 0,
+      showGlobalSearch: false,
+      clearSelection: vi.fn(),
+      $refs: {},
+      ...overrides
+    }
+  }
+
+  function pressEscape(host) {
+    keyboardShortcutsMixin.methods.handleKeyDown.call(host, {
+      key: 'Escape',
+      target: { tagName: 'DIV', isContentEditable: false },
+      preventDefault() {},
+      stopPropagation() {}
+    })
+  }
+
+  it('clears the selection through the shared action', () => {
+    const host = escapeHost()
+    pressEscape(host)
+    expect(host.clearSelection).toHaveBeenCalledTimes(1)
+  })
+
+  it('closes global search first and leaves the selection alone', () => {
+    const host = escapeHost({ showGlobalSearch: true })
+    pressEscape(host)
+    expect(host.showGlobalSearch).toBe(false)
+    expect(host.clearSelection).not.toHaveBeenCalled()
   })
 })

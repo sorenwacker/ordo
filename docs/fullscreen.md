@@ -16,7 +16,7 @@ The title and the notes edit in place exactly as on a card (see [Inline editing]
 
 The overlay closes on the close button, on a click on the backdrop outside the content, and on Escape. Closing saves an open editor first, so nothing typed is lost.
 
-Escape is handled in two steps when an editor is open. The first Escape leaves the editor: a title edit is discarded, as on the card, and a notes edit is saved. The second Escape closes the overlay. While the overlay is open, Escape does not reach the application's global shortcut handler, which would otherwise also drop the keyboard focus in the list behind it.
+Escape is handled in two steps when an editor is open. The first Escape leaves the editor: a title edit is discarded, as on the card, and a notes edit is saved. The second Escape closes the overlay. While the overlay is open, Escape does not reach the application's global shortcut handler, which would otherwise also clear the selection in the list behind it.
 
 ## Stacking
 

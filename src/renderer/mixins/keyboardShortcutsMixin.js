@@ -5,7 +5,7 @@
  * The host component registers `handleKeyDown` as a window keydown listener
  * and must provide `navigableTodos` (the cards in rendered order, which
  * `focusedTodoIndex` indexes), `showGlobalSearch`,
- * `showHelpModal`, `selectTodo`, `toggleComplete`, `deleteTodo`, `undo`,
+ * `showHelpModal`, `selectTodo`, `clearSelection`, `toggleComplete`, `deleteTodo`, `undo`,
  * `redo`, and an `appHeader` ref exposing `focusNewTodoInput`.
  */
 export default {
@@ -59,7 +59,7 @@ export default {
         }
       }
 
-      // Escape closes everything: search, inline editing, fullscreen, detail panel, detached windows
+      // Escape closes global search first; otherwise it clears the selection and focus
       if (e.key === 'Escape') {
         e.preventDefault()
         e.stopPropagation()
@@ -68,7 +68,7 @@ export default {
           this.showGlobalSearch = false
           return
         }
-        this.focusedTodoIndex = -1
+        this.clearSelection()
         return
       }
 

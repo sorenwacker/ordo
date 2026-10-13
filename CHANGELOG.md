@@ -6,6 +6,7 @@ All notable changes to this project are documented in this file. Versions corres
 
 ### Fixed
 
+- Escape clears the multi-selection, as the help modal has always said. It only dropped the keyboard focus, so a Cmd-click selection kept glowing until a canvas click. See [Selecting cards](docs/selection.md).
 - The arrow keys, `j`/`k` and the other single-card shortcuts walk the cards as they are rendered. They indexed the unfiltered, unsorted list, so a done card hidden while "Show done" was off cost an extra press, any sort other than manual made the focus jump about in creation order, and a search could focus a card that was not on screen. See [Selecting cards](docs/selection.md).
 
 ## 0.9.0 - 261013
