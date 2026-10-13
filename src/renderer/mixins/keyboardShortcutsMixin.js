@@ -3,7 +3,8 @@
  * navigation, and actions on the focused todo.
  *
  * The host component registers `handleKeyDown` as a window keydown listener
- * and must provide `todos`, `focusedTodoIndex`, `showGlobalSearch`,
+ * and must provide `navigableTodos` (the cards in rendered order, which
+ * `focusedTodoIndex` indexes), `showGlobalSearch`,
  * `showHelpModal`, `selectTodo`, `toggleComplete`, `deleteTodo`, `undo`,
  * `redo`, and an `appHeader` ref exposing `focusNewTodoInput`.
  */
@@ -39,20 +40,20 @@ export default {
         if (e.key === 'ArrowUp') {
           // Previous item in list
           e.preventDefault()
-          const todoCount = this.todos.length
+          const todoCount = this.navigableTodos.length
           if (todoCount > 0 && this.focusedTodoIndex > 0) {
             this.focusedTodoIndex--
-            this.selectTodo(this.todos[this.focusedTodoIndex].id)
+            this.selectTodo(this.navigableTodos[this.focusedTodoIndex].id)
           }
           return
         }
         if (e.key === 'ArrowDown') {
           // Next item in list
           e.preventDefault()
-          const todoCount = this.todos.length
+          const todoCount = this.navigableTodos.length
           if (todoCount > 0 && this.focusedTodoIndex < todoCount - 1) {
             this.focusedTodoIndex++
-            this.selectTodo(this.todos[this.focusedTodoIndex].id)
+            this.selectTodo(this.navigableTodos[this.focusedTodoIndex].id)
           }
           return
         }
@@ -96,7 +97,7 @@ export default {
       }
 
       // Navigation shortcuts only work in list/table/cards view with todos
-      const todoCount = this.todos.length
+      const todoCount = this.navigableTodos.length
       if (todoCount === 0) return
 
       switch (e.key) {
@@ -104,8 +105,8 @@ export default {
         case 'ArrowDown':
           e.preventDefault()
           this.focusedTodoIndex = Math.min(this.focusedTodoIndex + 1, todoCount - 1)
-          if (this.focusedTodoIndex >= 0 && this.todos[this.focusedTodoIndex]) {
-            this.selectTodo(this.todos[this.focusedTodoIndex].id)
+          if (this.focusedTodoIndex >= 0 && this.navigableTodos[this.focusedTodoIndex]) {
+            this.selectTodo(this.navigableTodos[this.focusedTodoIndex].id)
           }
           break
         case 'k': // Move up
@@ -113,31 +114,31 @@ export default {
           e.preventDefault()
           if (this.focusedTodoIndex < 0) this.focusedTodoIndex = 0
           else this.focusedTodoIndex = Math.max(this.focusedTodoIndex - 1, 0)
-          if (this.todos[this.focusedTodoIndex]) {
-            this.selectTodo(this.todos[this.focusedTodoIndex].id)
+          if (this.navigableTodos[this.focusedTodoIndex]) {
+            this.selectTodo(this.navigableTodos[this.focusedTodoIndex].id)
           }
           break
         case 'x': // Toggle complete
         case ' ': // Space also toggles
           e.preventDefault()
-          if (this.focusedTodoIndex >= 0 && this.todos[this.focusedTodoIndex]) {
-            this.toggleComplete(this.todos[this.focusedTodoIndex])
+          if (this.focusedTodoIndex >= 0 && this.navigableTodos[this.focusedTodoIndex]) {
+            this.toggleComplete(this.navigableTodos[this.focusedTodoIndex])
           }
           break
         case 'e': // Edit (open detail)
         case 'Enter':
           e.preventDefault()
-          if (this.focusedTodoIndex >= 0 && this.todos[this.focusedTodoIndex]) {
-            this.selectTodo(this.todos[this.focusedTodoIndex].id)
+          if (this.focusedTodoIndex >= 0 && this.navigableTodos[this.focusedTodoIndex]) {
+            this.selectTodo(this.navigableTodos[this.focusedTodoIndex].id)
           }
           break
         case 'Delete':
           e.preventDefault()
-          if (this.focusedTodoIndex >= 0 && this.todos[this.focusedTodoIndex]) {
-            this.deleteTodo(this.todos[this.focusedTodoIndex].id)
+          if (this.focusedTodoIndex >= 0 && this.navigableTodos[this.focusedTodoIndex]) {
+            this.deleteTodo(this.navigableTodos[this.focusedTodoIndex].id)
             // Adjust focus after deletion
-            if (this.focusedTodoIndex >= this.todos.length) {
-              this.focusedTodoIndex = this.todos.length - 1
+            if (this.focusedTodoIndex >= this.navigableTodos.length) {
+              this.focusedTodoIndex = this.navigableTodos.length - 1
             }
           }
           break

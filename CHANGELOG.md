@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file. Versions correspond to git tags and GitHub releases; dates use YYMMDD format. Version bumps that were never tagged (0.1.0, 0.3.0-0.3.7, 0.4.x, 0.5.0) are folded into the release that shipped them.
 
+## Unreleased
+
+### Fixed
+
+- The arrow keys, `j`/`k` and the other single-card shortcuts walk the cards as they are rendered. They indexed the unfiltered, unsorted list, so a done card hidden while "Show done" was off cost an extra press, any sort other than manual made the focus jump about in creation order, and a search could focus a card that was not on screen. See [Selecting cards](docs/selection.md).
+
 ## 0.9.0 - 261013
 
 ### Fixed

@@ -313,6 +313,7 @@
   import { useStatuses } from './composables/useStatuses.js'
   import { useMasonry } from './composables/useMasonry.js'
   import keyboardShortcutsMixin from './mixins/keyboardShortcutsMixin.js'
+  import { navigationOrder } from './utils/navigation.js'
   import todoActionsMixin from './mixins/todoActionsMixin.js'
   import { validateLocalStorage } from './utils/localStorageValidation.js'
   import { cardMinWidth, normalizeCardWidth } from './utils/cardWidth.js'
@@ -538,11 +539,15 @@
       noStatusTodos() {
         return this.filteredTodos.filter((t) => !t.status_id)
       },
+      navigableTodos() {
+        return navigationOrder({
+          groupByProject: this.groupByProject,
+          groupedTodos: this.groupedTodos,
+          sortedTodos: this.sortedTodos
+        })
+      },
       focusedTodo() {
-        if (this.focusedTodoIndex >= 0 && this.focusedTodoIndex < this.todos.length) {
-          return this.todos[this.focusedTodoIndex]
-        }
-        return null
+        return this.navigableTodos[this.focusedTodoIndex] || null
       },
       sortedTodos() {
         this.todosComposable.setSortBy(this.sortBy)
@@ -893,7 +898,7 @@
         this.todosComposable.setSelectedTodoIds(ids)
       },
       selectTodo(id) {
-        const index = this.todos.findIndex((t) => t.id === id)
+        const index = this.navigableTodos.findIndex((t) => t.id === id)
         if (index >= 0) {
           this.focusedTodoIndex = index
         }
@@ -992,10 +997,6 @@
             await this.setFilter('inbox')
           }
           this.$nextTick(() => {
-            const index = this.todos.findIndex((t) => t.id === todoId)
-            if (index >= 0) {
-              this.focusedTodoIndex = index
-            }
             this.selectTodo(todoId)
           })
         } else {
