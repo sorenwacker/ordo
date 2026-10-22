@@ -1,12 +1,17 @@
 import { app, BrowserWindow, ipcMain, screen, dialog, shell, session } from 'electron'
 import { join } from 'path'
-import { readFileSync, writeFileSync, watch } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import { Database } from './database.js'
 import { migrateLegacyUserData } from './legacyData.js'
 import logger from './logger.js'
 import { initAutoUpdater } from './updater.js'
+import { startExternalChangeWatcher } from './externalChanges.js'
 import history from './history.js'
-import { MAX_LENGTH, MAX_IMPORT_FILE_SIZE } from '../config/constants.js'
+import {
+  MAX_LENGTH,
+  MAX_IMPORT_FILE_SIZE,
+  EXTERNAL_CHANGE_POLL_INTERVAL
+} from '../config/constants.js'
 import {
   ValidationError,
   validateId,
@@ -132,22 +137,20 @@ app.whenReady().then(() => {
   }
   log.info('Database initialized')
 
-  // Reload the UI when another process (the MCP server) writes to the
-  // database. Own writes also trigger this; the debounce keeps it cheap.
-  try {
-    let refreshTimer = null
-    watch(join(app.getPath('userData')), (eventType, filename) => {
-      if (!filename || !filename.startsWith('todos.db')) return
-      clearTimeout(refreshTimer)
-      refreshTimer = setTimeout(() => {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('refresh-todos')
-        }
-      }, 500)
-    })
-  } catch (error) {
-    log.warn('Database file watcher unavailable', { error: error.message })
-  }
+  // Reload the UI when another process (the MCP server) commits to the
+  // database. Polling data_version, not watching the file: see
+  // docs/mcp-server.md for why a directory watch misses those writes.
+  const stopExternalChangeWatcher = startExternalChangeWatcher({
+    database,
+    intervalMs: EXTERNAL_CHANGE_POLL_INTERVAL,
+    log,
+    onChange: () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('refresh-todos')
+      }
+    }
+  })
+  app.on('will-quit', stopExternalChangeWatcher)
 
   // Block navigation away from the app and route popups through the OS browser,
   // so no foreign page can ever run with the preload API attached.

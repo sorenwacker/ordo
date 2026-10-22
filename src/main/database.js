@@ -902,6 +902,19 @@ export class Database {
     return backupPath
   }
 
+  /**
+   * SQLite's data_version for this connection.
+   *
+   * The value changes when another connection commits to the database and
+   * stays the same across this connection's own commits, which makes it a
+   * cheap signal for writes made by the MCP server (see docs/mcp-server.md).
+   *
+   * @returns {number} Current data_version.
+   */
+  getDataVersion() {
+    return this.db.pragma('data_version', { simple: true })
+  }
+
   close() {
     this.db.close()
   }

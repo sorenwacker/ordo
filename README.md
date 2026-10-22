@@ -168,6 +168,7 @@ src/
 │   ├── validators.js   # Input validation for IPC payloads
 │   ├── legacyData.js   # One-time copy of data from the previous app name
 │   ├── importExport.js # JSON backup import and export
+│   ├── externalChanges.js # Reload the UI after another process commits
 │   ├── updater.js      # Auto-update behavior
 │   ├── logger.js       # Main-process logging
 │   └── history.js      # Undo/redo state management

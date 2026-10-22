@@ -9,6 +9,10 @@ export const HISTORY_MAX_SIZE = 50
 export const UPDATE_CHECK_INITIAL_DELAY = 5000
 export const UPDATE_CHECK_INTERVAL = 4 * 60 * 60 * 1000 // 4 hours
 
+// How often the main process polls SQLite's data_version for commits made by
+// another process, such as the MCP server (see docs/mcp-server.md).
+export const EXTERNAL_CHANGE_POLL_INTERVAL = 1000
+
 // Squirrel.Mac refuses to install unsigned builds, so unsigned macOS uses a
 // notify-only updater. Set to true once Developer ID signing is configured
 // (see docs/auto-update.md).

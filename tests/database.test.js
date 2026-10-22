@@ -29,6 +29,17 @@ describe('Database', () => {
       expect(db.db.pragma('journal_mode', { simple: true })).toBe('wal')
       expect(db.db.pragma('busy_timeout', { simple: true })).toBe(5000)
     })
+
+    it('exposes a data version that changes only on commits from other connections', () => {
+      const before = db.getDataVersion()
+      db.createProject('Own write', '#0f9d58')
+      expect(db.getDataVersion()).toBe(before)
+
+      const other = new Database(testDbPath)
+      other.createProject('Other connection', '#0f9d58')
+      other.close()
+      expect(db.getDataVersion()).not.toBe(before)
+    })
   })
 
   describe('Projects', () => {
