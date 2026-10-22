@@ -62,6 +62,20 @@ describe('CardItem', () => {
     app.remove()
   })
 
+  it('does not open the notes editor when the click ends a text selection', async () => {
+    const wrapper = mount(CardItem, { props: { todo: makeTodo({ notes: 'plain note text' }) } })
+    await wrapper.trigger('click')
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      isCollapsed: false,
+      toString: () => 'note'
+    })
+    await wrapper.get('.card-notes-preview .markdown-body').trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.cm-container').exists()).toBe(false)
+    vi.restoreAllMocks()
+    wrapper.unmount()
+  })
+
   it('emits toggle-complete when the checkbox is clicked', async () => {
     const wrapper = mount(CardItem, { props: { todo: makeTodo() } })
     await wrapper.get('input[type="checkbox"]').trigger('click')

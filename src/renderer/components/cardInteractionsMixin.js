@@ -1,6 +1,7 @@
 import { presetDueDate, isOverdue, formatDeadline, formatCreatedDate } from '../utils/dueDates.js'
 import { renderCardNotes } from '../utils/markdown.js'
 import { isWindowUnfocused } from '../utils/windowFocus.js'
+import { hasTextSelection } from '../utils/textSelection.js'
 
 /**
  * Shared behavior for todo card components (CardItem, KanbanCard): date
@@ -78,6 +79,9 @@ export default {
       this.updateEditFocusWatch()
     },
     startNotesEdit() {
+      // The click that ends a drag-selection must not open the editor; the
+      // user is copying text, not editing it (see docs/editing.md).
+      if (hasTextSelection()) return
       this.editingNotes = this.todo.notes || ''
       this.isEditingNotes = true
       this.updateEditFocusWatch()
