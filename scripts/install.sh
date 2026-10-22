@@ -6,14 +6,18 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_DIR"
 
-echo "Building Todo app..."
+# The bundle is named after build.productName in package.json; read it from
+# there so a rename cannot leave this script looking for the old name.
+PRODUCT_NAME="$(node -p "require('./package.json').build.productName")"
+APP_NAME="$PRODUCT_NAME.app"
+
+echo "Building $PRODUCT_NAME..."
 npm run build
 
 echo "Packaging for macOS..."
 npx electron-builder --mac
 
 # Find the built .app
-APP_NAME="Todo.app"
 DIST_APP="$PROJECT_DIR/dist/mac-arm64/$APP_NAME"
 
 if [ ! -d "$DIST_APP" ]; then
@@ -33,5 +37,5 @@ fi
 
 cp -R "$DIST_APP" /Applications/
 
-echo "Done! Todo app installed to /Applications/$APP_NAME"
+echo "Done! $PRODUCT_NAME installed to /Applications/$APP_NAME"
 echo "You can now launch it from Applications or Spotlight."

@@ -57,6 +57,21 @@ describe('application naming', () => {
     expect(readme.split('\n')[0]).toBe(`# ${pkg.build.productName}`)
   })
 
+  // The local install helpers were missed by the rename and failed for every
+  // build after it (see docs/renaming.md). Both must take the name from
+  // package.json rather than spell it out, so a future rename cannot miss them.
+  it('derives the bundle name in the install script from the product name', () => {
+    const script = readFileSync(join(root, 'scripts/install.sh'), 'utf8')
+    expect(script).toContain('build.productName')
+    expect(script).not.toMatch(/Todo/)
+  })
+
+  it('derives the disk image name in the Makefile from the product name', () => {
+    const makefile = readFileSync(join(root, 'Makefile'), 'utf8')
+    expect(makefile).toContain('build.productName')
+    expect(makefile).not.toMatch(/Todo/)
+  })
+
   // docs/renaming.md is exempt: documenting the move from the old repository
   // name is its purpose, so the old name appearing there is intentional.
   it('has no references left to the former repository name', () => {
