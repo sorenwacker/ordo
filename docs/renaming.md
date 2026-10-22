@@ -27,3 +27,5 @@ A failure to copy is logged and swallowed rather than being allowed to stop star
 ## Repository and downloads
 
 The GitHub repository moved from `sorenwacker/my-todo-list` to `sorenwacker/ordo`. GitHub redirects the old paths, including release asset URLs, so existing installations continue to find updates. Release assets are named `Ordo-<version>-*` from 0.8.3; earlier releases keep their `Todo-<version>-*` names.
+
+The local install helpers were missed by the rename: `scripts/install.sh` kept looking for `Todo.app` and the Makefile's `install` target for `Todo-*-arm64.dmg`, so both failed on every build after 0.8.3. They now read the product name from `package.json`, and `tests/documentation.test.js` fails if either names the bundle or the disk image by hand again.

@@ -6,6 +6,7 @@ All notable changes to this project are documented in this file. Versions corres
 
 ### Fixed
 
+- `npm run install:mac` and `make install` work again. Both still looked for the pre-rename `Todo.app` bundle and `Todo-*.dmg` image, so they built the app and then reported that it could not be found. They now take the product name from `package.json`. See [Renaming](docs/renaming.md).
 - The release workflow creates one draft release before the platform builds and publishes it after they finish. Each platform job used to create its own draft for the tag, so a tag left three partial drafts that had to be merged and published by hand, and the updater saw nothing until that was done.
 - Selecting text in a card's rendered notes no longer opens the notes editor. The mouse-up that ends a drag-selection also fires a click, which opened the editor and dropped the selection, most visibly in the full-screen card where notes are read. A click that arrives with a text selection is now ignored on the card, the kanban card and the full-screen card. See [Inline editing](docs/editing.md).
 
