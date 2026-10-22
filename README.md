@@ -145,7 +145,7 @@ npm run dist:linux
 npm run install:mac
 ```
 
-Built applications are written to the `dist/` directory. Releases are cut by pushing a `v*` tag, which runs `.github/workflows/release.yml` across macOS, Windows and Linux runners; `npm run dist` builds locally without publishing.
+Built applications are written to the `dist/` directory. Releases are cut by pushing a `v*` tag, which runs `.github/workflows/release.yml`; `npm run dist` builds locally without publishing. The workflow runs in three stages: one job creates the draft release for the tag, the macOS, Windows and Linux jobs build and upload their installers into that draft, and a final job publishes it and marks it as the latest release. The draft is created up front because each platform job would otherwise create its own draft for the same tag, leaving three partial releases to merge by hand; `tests/releaseWorkflow.test.js` fails if the stages lose their ordering. Only a published release is visible to the in-app updater (see [docs/auto-update.md](docs/auto-update.md)).
 
 ## Architecture
 

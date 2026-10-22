@@ -8,8 +8,27 @@ on:
 permissions:
   contents: write
 
+# Three stages: the draft release is created once, every platform uploads
+# into it, and it is published once all uploads are in. electron-builder
+# creates a draft itself when none exists, so without the first stage each
+# platform job raced to create its own (see README, Building).
 jobs:
-  release:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create the draft release the platform jobs upload into
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --draft --title "${GITHUB_REF_NAME#v}" \
+              --notes "See CHANGELOG.md for the changes in this release."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: create-release
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -31,5 +50,17 @@ jobs:
 
       - name: Build and publish
         run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Publish the release and mark it as latest
+        run: gh release edit "$GITHUB_REF_NAME" --draft=false --latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
