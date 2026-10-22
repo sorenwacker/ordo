@@ -82,6 +82,16 @@ describe('CardFullscreen', () => {
     expect(wrapper.findComponent(NotesEditor).exists()).toBe(true)
   })
 
+  it('does not open the notes editor when the click ends a text selection', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'Some **notes** to copy' }) })
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      isCollapsed: false,
+      toString: () => 'notes'
+    })
+    await wrapper.get('.fullscreen-notes .markdown-body').trigger('click')
+    expect(wrapper.findComponent(NotesEditor).exists()).toBe(false)
+  })
+
   it('emits update-notes when the editor is left', async () => {
     const wrapper = mountOverlay({ todo: makeTodo({ notes: 'note' }) })
     await wrapper.get('.fullscreen-notes .markdown-body').trigger('click')

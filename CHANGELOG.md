@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file. Versions correspond to git tags and GitHub releases; dates use YYMMDD format. Version bumps that were never tagged (0.1.0, 0.3.0-0.3.7, 0.4.x, 0.5.0) are folded into the release that shipped them.
 
+## Unreleased
+
+### Fixed
+
+- Selecting text in a card's rendered notes no longer opens the notes editor. The mouse-up that ends a drag-selection also fires a click, which opened the editor and dropped the selection, most visibly in the full-screen card where notes are read. A click that arrives with a text selection is now ignored on the card, the kanban card and the full-screen card. See [Inline editing](docs/editing.md).
+
 ## 0.9.1 - 261022
 
 ### Fixed

@@ -18,6 +18,10 @@ Without that, the first click of a double-click reaches the card and toggles it.
 
 The cost is that a single click on the title does nothing. Every other part of the card still expands and selects it.
 
+## Selecting text in rendered notes does not open the editor
+
+The rendered notes open their editor on a click. A mouse-up that ends a drag also fires a click on the element under the pointer, so selecting a passage to copy it would open the editor and drop the selection. The handler shared by the card, the kanban card and the full-screen card (`startNotesEdit` in `src/renderer/components/cardInteractionsMixin.js`) therefore ignores a click that arrives while the document holds a non-empty text selection (`hasTextSelection()` in `src/renderer/utils/textSelection.js`). A plain click collapses any earlier selection on mouse-down, so it still opens the editor. `tests/CardFullscreen.test.js` and `tests/CardItem.test.js` cover both cases.
+
 ## Losing application focus does not end the session
 
 Switching to another application blurs whatever element has keyboard focus, and a blur is otherwise how these surfaces decide the user is done. Treating it as the end of the edit would close the editor behind the user's back: they return to a rendered note instead of the editor they left, and an unconfirmed sidebar name is gone.
