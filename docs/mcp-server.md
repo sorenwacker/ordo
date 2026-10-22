@@ -44,9 +44,17 @@ process opens it first) with a 5-second busy timeout on both sides, so
 app and server writes interleave safely. Before file copies (pre-migration
 backup) the WAL is checkpointed so backups are complete.
 
-The app watches its database file and reloads the UI shortly after an
-external process writes to it, so todos added through the server appear
-without a restart.
+The app polls SQLite's `data_version` pragma once a second
+(`EXTERNAL_CHANGE_POLL_INTERVAL` in `src/config/constants.js`, implemented
+in `src/main/externalChanges.js`) and reloads the UI when the value changes.
+The pragma changes only when another connection commits, so the app's own
+writes do not trigger a reload. Todos added or changed through the server
+appear within about a second, without a restart.
+
+Earlier versions watched the data directory with `fs.watch` instead. On
+macOS that watch receives no content-change events for a file that another
+process keeps open and writes to repeatedly, and the server keeps its
+connection open, so its writes went unnoticed until the app was restarted.
 
 ## Tools
 
