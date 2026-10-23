@@ -76,25 +76,42 @@ describe('CardFullscreen', () => {
     expect(wrapper.html()).not.toContain('my secret plans')
   })
 
-  it('opens the notes editor on a click on the rendered notes', async () => {
+  it('opens the notes editor on a double-click on the rendered notes', async () => {
     const wrapper = mountOverlay({ todo: makeTodo({ notes: 'note' }) })
-    await wrapper.get('.fullscreen-notes .markdown-body').trigger('click')
+    await wrapper.get('.fullscreen-notes .markdown-body').trigger('dblclick')
     expect(wrapper.findComponent(NotesEditor).exists()).toBe(true)
   })
 
-  it('does not open the notes editor when the click ends a text selection', async () => {
-    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'Some **notes** to copy' }) })
-    vi.spyOn(window, 'getSelection').mockReturnValue({
-      isCollapsed: false,
-      toString: () => 'notes'
-    })
+  it('does not open the notes editor on a single click on the rendered notes', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'Some **notes** to read' }) })
     await wrapper.get('.fullscreen-notes .markdown-body').trigger('click')
     expect(wrapper.findComponent(NotesEditor).exists()).toBe(false)
   })
 
+  it('opens the notes editor on a double-click although it selected a word', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'Some **notes** to read' }) })
+    const selection = {
+      isCollapsed: false,
+      toString: () => 'notes',
+      removeAllRanges: vi.fn(function () {
+        this.isCollapsed = true
+      })
+    }
+    vi.spyOn(window, 'getSelection').mockReturnValue(selection)
+    await wrapper.get('.fullscreen-notes .markdown-body').trigger('dblclick')
+    expect(selection.removeAllRanges).toHaveBeenCalled()
+    expect(wrapper.findComponent(NotesEditor).exists()).toBe(true)
+  })
+
+  it('opens the notes editor on a single click on the add-notes placeholder', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: '' }) })
+    await wrapper.get('.fullscreen-notes .add-notes-link').trigger('click')
+    expect(wrapper.findComponent(NotesEditor).exists()).toBe(true)
+  })
+
   it('emits update-notes when the editor is left', async () => {
     const wrapper = mountOverlay({ todo: makeTodo({ notes: 'note' }) })
-    await wrapper.get('.fullscreen-notes .markdown-body').trigger('click')
+    await wrapper.get('.fullscreen-notes .markdown-body').trigger('dblclick')
     wrapper.findComponent(NotesEditor).vm.$emit('update:modelValue', 'changed')
     wrapper.findComponent(NotesEditor).vm.$emit('blur')
     await wrapper.vm.$nextTick()
@@ -127,7 +144,7 @@ describe('CardFullscreen', () => {
 
   it('saves an open notes editor before closing', async () => {
     const wrapper = mountOverlay({ todo: makeTodo({ notes: 'note' }) })
-    await wrapper.get('.fullscreen-notes .markdown-body').trigger('click')
+    await wrapper.get('.fullscreen-notes .markdown-body').trigger('dblclick')
     wrapper.findComponent(NotesEditor).vm.$emit('update:modelValue', 'typed')
     await wrapper.get('.fullscreen-close').trigger('click')
     expect(wrapper.emitted('update-notes')).toEqual([['typed']])
@@ -142,7 +159,7 @@ describe('CardFullscreen', () => {
 
   it('leaves the notes editor on the first Escape and closes on the second', async () => {
     const wrapper = mountOverlay({ todo: makeTodo({ notes: 'note' }) })
-    await wrapper.get('.fullscreen-notes .markdown-body').trigger('click')
+    await wrapper.get('.fullscreen-notes .markdown-body').trigger('dblclick')
     wrapper.findComponent(NotesEditor).vm.$emit('update:modelValue', 'typed')
     press('Escape')
     await wrapper.vm.$nextTick()

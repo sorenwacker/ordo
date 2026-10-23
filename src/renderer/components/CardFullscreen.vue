@@ -36,13 +36,13 @@
           @update:model-value="editingNotes = $event"
           @blur="onNotesBlur"
         />
-        <div v-else class="markdown-body" @click="startNotesEdit">
+        <div v-else class="markdown-body" @dblclick="openNotesEditor">
           <div v-if="todo.notes_sensitive" class="sensitive-notes-card">
             <span class="sensitive-icon-small">L</span>
             <span class="sensitive-text">Sensitive content hidden</span>
           </div>
           <div v-else-if="todo.notes" v-html="renderCardNotes(todo.notes)"></div>
-          <div v-else class="add-notes-link">+ Add notes</div>
+          <div v-else class="add-notes-link" @click="startNotesEdit">+ Add notes</div>
         </div>
       </div>
     </div>
@@ -96,6 +96,13 @@
           return
         }
         this.$emit('close')
+      },
+      openNotesEditor() {
+        // The overlay is for reading, so notes open on a double-click. That
+        // double-click selects a word, which the shared selection guard would
+        // read as "copying, not editing"; clear it first (see docs/fullscreen.md).
+        window.getSelection()?.removeAllRanges()
+        this.startNotesEdit()
       },
       close() {
         this.saveTitle()
