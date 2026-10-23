@@ -151,7 +151,7 @@ Built applications are written to the `dist/` directory. Releases are cut by pus
 
 ### Technology Stack
 - **Frontend**: Vue 3 with Composition API
-- **Desktop Framework**: Electron 39
+- **Desktop Framework**: Electron 42
 - **Build Tool**: electron-vite
 - **Database**: better-sqlite3 (WAL mode, shared with the MCP server)
 - **Markdown Parser**: marked
