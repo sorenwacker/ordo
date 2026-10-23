@@ -6,7 +6,8 @@ Several surfaces edit in place rather than in a dialog: a click (or double-click
 | --- | --- | --- |
 | Card title (cards and kanban) | double-click the title | saves the title |
 | Card notes (cards and kanban) | click the rendered notes | saves the notes, returns to the rendered view |
-| Full-screen card title and notes | as on the card | as on the card; closing the overlay saves first (see [Full-screen card](fullscreen.md)) |
+| Full-screen card title | double-click the title | as on the card; closing the overlay saves first (see [Full-screen card](fullscreen.md)) |
+| Full-screen card notes | double-click the rendered notes, or click the `+ Add notes` placeholder | as on the card; closing the overlay saves first |
 | Project notes pane | click the rendered notes, or the Edit button | saves the notes, returns to the rendered view |
 | Sidebar "Add Project" / "Add Status" | click the button | discards the typed name |
 
@@ -20,7 +21,7 @@ The cost is that a single click on the title does nothing. Every other part of t
 
 ## Selecting text in rendered notes does not open the editor
 
-The rendered notes open their editor on a click. A mouse-up that ends a drag also fires a click on the element under the pointer, so selecting a passage to copy it would open the editor and drop the selection. The handler shared by the card, the kanban card and the full-screen card (`startNotesEdit` in `src/renderer/components/cardInteractionsMixin.js`) therefore ignores a click that arrives while the document holds a non-empty text selection (`hasTextSelection()` in `src/renderer/utils/textSelection.js`). A plain click collapses any earlier selection on mouse-down, so it still opens the editor. `tests/CardFullscreen.test.js` and `tests/CardItem.test.js` cover both cases.
+The rendered notes open their editor on a click. A mouse-up that ends a drag also fires a click on the element under the pointer, so selecting a passage to copy it would open the editor and drop the selection. The handler shared by the card, the kanban card and the full-screen card (`startNotesEdit` in `src/renderer/components/cardInteractionsMixin.js`) therefore ignores a click that arrives while the document holds a non-empty text selection (`hasTextSelection()` in `src/renderer/utils/textSelection.js`). A plain click collapses any earlier selection on mouse-down, so it still opens the editor. The full-screen card opens its editor on a double-click instead, and clears the word that double-click selected before calling the same handler. `tests/CardFullscreen.test.js` and `tests/CardItem.test.js` cover these cases.
 
 ## Losing application focus does not end the session
 

@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file. Versions corres
 - The release workflow creates one draft release before the platform builds and publishes it after they finish. Each platform job used to create its own draft for the tag, so a tag left three partial drafts that had to be merged and published by hand, and the updater saw nothing until that was done.
 - Selecting text in a card's rendered notes no longer opens the notes editor. The mouse-up that ends a drag-selection also fires a click, which opened the editor and dropped the selection, most visibly in the full-screen card where notes are read. A click that arrives with a text selection is now ignored on the card, the kanban card and the full-screen card. See [Inline editing](docs/editing.md).
 
+### Changed
+
+- The full-screen card opens its notes editor on a double-click instead of a single click. The overlay is where notes are read, and a single click or a drag that selects text now leaves them alone; the `+ Add notes` placeholder still opens the editor on one click. See [Full-screen card](docs/fullscreen.md).
+
 ### Security
 
 - Electron moves from 41.10.6 to 42.11.9. better-sqlite3 12.10.0 does not compile against Electron 42's V8 (`v8::External::Value` and `SetNativeDataProperty` changed), so it moves to 12.11.1, the last 12.x on npm and the release that added the Electron 42 build fix; 13.x switches to N-API and stays out of this bound. Dependabot merges: hono 4.13.13 and @modelcontextprotocol/sdk 1.32.0 in the MCP server, dompurify 3.4.17, vitest and @vitest/mocker 4.1.12.

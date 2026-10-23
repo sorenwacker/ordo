@@ -10,7 +10,7 @@ The overlay is read from the live todo, so a change saved in it is visible on th
 
 ## Editing
 
-The title and the notes edit in place exactly as on a card (see [Inline editing](editing.md)): a double-click on the title opens the rename box, a click on the rendered notes opens the editor, and leaving either editor saves. The notes editor fills the overlay body. Edits go through the same `update-title` and `update-notes` path as the card's own edits, so undo, history, and the other windows see them the same way.
+The title and the notes edit in place as on a card (see [Inline editing](editing.md)), with one difference: the overlay is where notes are read, so its rendered notes open the editor on a double-click, not on the single click a card uses. A single click or a drag that selects text leaves the notes as they are. The double-click selects the word under the pointer, so the overlay clears that selection before opening the editor; otherwise the selection guard shared with the cards would block the edit. The `+ Add notes` placeholder of a todo without notes opens the editor on a single click, since there is nothing to read or select. A double-click on the title opens the rename box, and leaving either editor saves. The notes editor fills the overlay body. Edits go through the same `update-title` and `update-notes` path as the card's own edits, so undo, history, and the other windows see them the same way.
 
 ## Closing
 
