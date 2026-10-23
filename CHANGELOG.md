@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file. Versions corres
 ### Security
 
 - Electron moves from 41.10.6 to 42.11.9. better-sqlite3 12.10.0 does not compile against Electron 42's V8 (`v8::External::Value` and `SetNativeDataProperty` changed), so it moves to 12.11.1, the last 12.x on npm and the release that added the Electron 42 build fix; 13.x switches to N-API and stays out of this bound. Dependabot merges: hono 4.13.13 and @modelcontextprotocol/sdk 1.32.0 in the MCP server, dompurify 3.4.17, vitest and @vitest/mocker 4.1.12.
+- Lockfile-only patches for the advisories left after those merges: vite 6.4.3 to 6.4.5 (GHSA-698v-4r3x-3vcv, GHSA-r825-w8mm-5pxw) in the app and ip-address 10.7.2 to 10.7.4 (GHSA-rxp7-6hxx-x8q5) in the MCP server. `npm audit` reports no vulnerabilities in either tree.
 
 ## 0.9.1 - 261022
 
