@@ -265,15 +265,30 @@ function repairStaleCategoryFk(db, log) {
     return
   }
 
-  db.transaction(() => {
-    db.exec(`CREATE TABLE todos_rebuild (${TODOS_COLUMNS_DDL})`)
-    const targetColumns = db.pragma('table_info(todos_rebuild)').map((c) => c.name)
-    const sourceColumns = new Set(db.pragma('table_info(todos)').map((c) => c.name))
-    const copyColumns = targetColumns.filter((c) => sourceColumns.has(c)).join(', ')
-    db.exec(`INSERT INTO todos_rebuild (${copyColumns}) SELECT ${copyColumns} FROM todos`)
-    db.exec('DROP TABLE todos')
-    db.exec('ALTER TABLE todos_rebuild RENAME TO todos')
-  })()
+  // With enforcement on, DROP TABLE todos would fire ON DELETE CASCADE in
+  // todo_links, milestone_items and todo_tags. The pragma is a no-op inside a
+  // transaction, so it is switched off around it and restored afterwards.
+  const fkWasOn = db.pragma('foreign_keys', { simple: true }) === 1
+  if (fkWasOn) db.pragma('foreign_keys = OFF')
+  try {
+    db.transaction(() => {
+      db.exec(`CREATE TABLE todos_rebuild (${TODOS_COLUMNS_DDL})`)
+      const targetColumns = db.pragma('table_info(todos_rebuild)').map((c) => c.name)
+      const sourceColumns = new Set(db.pragma('table_info(todos)').map((c) => c.name))
+      const copyColumns = targetColumns.filter((c) => sourceColumns.has(c)).join(', ')
+      db.exec(`INSERT INTO todos_rebuild (${copyColumns}) SELECT ${copyColumns} FROM todos`)
+      db.exec('DROP TABLE todos')
+      db.exec('ALTER TABLE todos_rebuild RENAME TO todos')
+      // Enforcement was never on in older databases, so orphans may predate
+      // the rebuild; report them rather than refuse to start.
+      const violations = db.pragma('foreign_key_check')
+      if (violations.length > 0) {
+        log.warn(`todos rebuild: ${violations.length} pre-existing foreign key violations`)
+      }
+    })()
+  } finally {
+    if (fkWasOn) db.pragma('foreign_keys = ON')
+  }
   log.info('Rebuilt todos table to remove stale categories foreign key')
 }
 
