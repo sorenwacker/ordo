@@ -5,8 +5,11 @@
  * The host component must provide `todosComposable` and `projectsComposable`
  * (from setup), the `loadAllTodos`/`loadTodos` methods, `selectTodo`, and the
  * `currentFilter`, `isProjectSelected`, `allTodos`, `statuses`, `newTodoTitle`,
- * and `trashCount` state.
+ * and `trashCount` state, and `showDbError` for reporting failed writes.
  */
+
+import { completionForStatus } from '../utils/doneStatus.js'
+import { formatLocalDate } from '../utils/dueDates.js'
 
 /**
  * Reads a project or status id off a kanban drop zone's data attribute.
@@ -108,6 +111,11 @@ export default {
         if (statusId !== null) {
           const todoData = this.toPlainTodo(todo)
           todoData.status_id = statusId
+          // A todo created in the Done column starts completed, as one moved there would.
+          if (completionForStatus(null, statusId, false, this.statuses)) {
+            todoData.completed = true
+            todoData.end_date = todoData.end_date || formatLocalDate(new Date())
+          }
           await window.api.updateTodo(todoData)
         }
         await this.loadAllTodos()
@@ -118,9 +126,14 @@ export default {
       }
     },
     async moveInboxTodoToProject(todo, projectId) {
-      todo.project_id = projectId
-      const todoData = this.toPlainTodo(todo)
-      await window.api.updateTodo(todoData)
+      // Persist first; the reload shows the move only once it is saved.
+      const todoData = { ...this.toPlainTodo(todo), project_id: projectId }
+      try {
+        await window.api.updateTodo(todoData)
+      } catch (error) {
+        this.showDbError('Failed to move todo: ' + error.message)
+        return
+      }
       await this.loadAllTodos()
       await this.loadTodos()
     },

@@ -8,14 +8,9 @@
           current file is kept as a backup next to it.
         </p>
         <p>Type <strong>yes</strong> to enable the reset.</p>
-        <input
-          v-model="confirmation"
-          type="text"
-          placeholder="yes"
-          @keyup.enter="confirmed && $emit('confirm')"
-        />
+        <input v-model="confirmation" type="text" placeholder="yes" @keyup.enter="confirm" />
         <div class="modal-actions">
-          <button class="delete-btn" :disabled="!confirmed" @click.stop="$emit('confirm')">
+          <button class="delete-btn" :disabled="!confirmed || pending" @click.stop="confirm">
             Reset Database
           </button>
           <button @click.stop="$emit('close')">Cancel</button>
@@ -51,12 +46,22 @@
     emits: ['close', 'confirm'],
     data() {
       return {
-        confirmation: ''
+        confirmation: '',
+        // Set on the first confirm. A second reset would back up the already
+        // emptied database and show that file as the backup to restore.
+        pending: false
       }
     },
     computed: {
       confirmed() {
         return this.confirmation.trim().toLowerCase() === 'yes'
+      }
+    },
+    methods: {
+      confirm() {
+        if (!this.confirmed || this.pending) return
+        this.pending = true
+        this.$emit('confirm')
       }
     }
   }

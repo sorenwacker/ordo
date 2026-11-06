@@ -9,6 +9,62 @@ import log from './logger.js'
 import { createTables, runMigrations, verifySchema, SCHEMA_VERSION } from './schema.js'
 import { exportData, importData } from './importExport.js'
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** Parse 'YYYY-MM-DD' (optionally with a time suffix) as UTC midnight. */
+function parseDateUTC(dateStr) {
+  const [y, m, d] = dateStr.slice(0, 10).split('-').map(Number)
+  return Date.UTC(y, m - 1, d)
+}
+
+/** Format a Date as 'YYYY-MM-DD' from its UTC fields. */
+function formatDateUTC(date) {
+  return date.toISOString().slice(0, 10)
+}
+
+/** Today's (or the given) local calendar date as 'YYYY-MM-DD'. */
+function localDateString(date) {
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+/**
+ * Advance a calendar date by one recurrence step.
+ * Monthly and yearly steps clamp to the last day of the target month, so
+ * Jan 31 + 1 month is Feb 28/29 rather than early March.
+ *
+ * @param {string} dateStr - 'YYYY-MM-DD'
+ * @param {string} type - daily | weekly | monthly | yearly
+ * @param {number} interval - number of steps
+ * @returns {string|null} next date, or null for an unknown type
+ */
+export function addRecurrenceStep(dateStr, type, interval) {
+  const date = new Date(parseDateUTC(dateStr))
+  switch (type) {
+    case 'daily':
+      date.setUTCDate(date.getUTCDate() + interval)
+      break
+    case 'weekly':
+      date.setUTCDate(date.getUTCDate() + interval * 7)
+      break
+    case 'monthly':
+    case 'yearly': {
+      const months = type === 'monthly' ? interval : interval * 12
+      const day = date.getUTCDate()
+      date.setUTCDate(1)
+      date.setUTCMonth(date.getUTCMonth() + months)
+      const lastDay = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)
+      ).getUTCDate()
+      date.setUTCDate(Math.min(day, lastDay))
+      break
+    }
+    default:
+      return null
+  }
+  return formatDateUTC(date)
+}
+
 export class Database {
   /**
    * @param {string|null} dbPath - Database file; null resolves the app default.
@@ -143,11 +199,13 @@ export class Database {
   }
 
   deleteProject(id) {
-    // Move all todos in this project to inbox (no project)
-    this.db.prepare('UPDATE todos SET project_id = NULL WHERE project_id = ?').run(id)
+    this.db.transaction(() => {
+      // Move all todos in this project to inbox (no project)
+      this.db.prepare('UPDATE todos SET project_id = NULL WHERE project_id = ?').run(id)
 
-    // Soft delete: set deleted_at timestamp
-    this.db.prepare('UPDATE projects SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?').run(id)
+      // Soft delete: set deleted_at timestamp
+      this.db.prepare('UPDATE projects SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?').run(id)
+    })()
     return true
   }
 
@@ -363,44 +421,25 @@ export class Database {
     const todo = this.getTodo(todoId)
     if (!todo || !todo.recurrence_type) return null
 
-    // Calculate next due date
-    const baseDate = todo.end_date ? new Date(todo.end_date) : new Date()
+    // Calculate next due date. Dates are calendar days (YYYY-MM-DD), so all
+    // arithmetic is done in UTC, where no DST shift can move the day.
+    const baseStr = todo.end_date ? todo.end_date.slice(0, 10) : localDateString(new Date())
     const interval = todo.recurrence_interval || 1
+    const nextDateStr = addRecurrenceStep(baseStr, todo.recurrence_type, interval)
+    if (!nextDateStr) return null
 
-    let nextDate = new Date(baseDate)
-    switch (todo.recurrence_type) {
-      case 'daily':
-        nextDate.setDate(nextDate.getDate() + interval)
-        break
-      case 'weekly':
-        nextDate.setDate(nextDate.getDate() + interval * 7)
-        break
-      case 'monthly':
-        nextDate.setMonth(nextDate.getMonth() + interval)
-        break
-      case 'yearly':
-        nextDate.setFullYear(nextDate.getFullYear() + interval)
-        break
-      default:
-        return null
+    // Check if recurrence end date has passed (string order is date order)
+    if (todo.recurrence_end_date && nextDateStr > todo.recurrence_end_date.slice(0, 10)) {
+      return null
     }
 
-    // Check if recurrence end date has passed
-    if (todo.recurrence_end_date) {
-      const endDate = new Date(todo.recurrence_end_date)
-      if (nextDate > endDate) return null
-    }
-
-    const nextDateStr = nextDate.toISOString().split('T')[0]
-
-    // Calculate next start date if original had one
+    // Calculate next start date if original had one, keeping the same span
     let nextStartDate = null
     if (todo.start_date && todo.end_date) {
-      const startDate = new Date(todo.start_date)
-      const endDateObj = new Date(todo.end_date)
-      const duration = endDateObj - startDate
-      const newStartDate = new Date(nextDate - duration)
-      nextStartDate = newStartDate.toISOString().split('T')[0]
+      const spanDays = Math.round(
+        (parseDateUTC(todo.end_date) - parseDateUTC(todo.start_date)) / DAY_MS
+      )
+      nextStartDate = formatDateUTC(new Date(parseDateUTC(nextDateStr) - spanDays * DAY_MS))
     }
 
     // Create new todo with same properties but new dates

@@ -105,9 +105,26 @@ export function importData(db, importData, mode = 'merge') {
         INSERT INTO statuses (name, color, sort_order, created_at)
         VALUES (?, ?, ?, ?)
       `)
+      // Reuse an existing column with the same name, as tags do, so a merge
+      // import does not double the seeded Todo/In Progress/Done/Backlog.
+      const existingByName = new Map(
+        db
+          .prepare('SELECT id, name FROM statuses')
+          .all()
+          .map((row) => [row.name.trim().toLowerCase(), row.id])
+      )
       statuses.forEach((s) => {
+        const key = String(s.name ?? '')
+          .trim()
+          .toLowerCase()
+        const existingId = existingByName.get(key)
+        if (existingId !== undefined) {
+          statusIdMap.set(s.id, existingId)
+          return
+        }
         const result = stmt.run(s.name, s.color, s.sort_order, s.created_at)
         statusIdMap.set(s.id, result.lastInsertRowid)
+        existingByName.set(key, result.lastInsertRowid)
       })
     }
 

@@ -1,4 +1,6 @@
 import { MAX_LENGTH } from '../src/config/constants.js'
+import { statusForCompletion } from '../src/renderer/utils/doneStatus.js'
+import { formatLocalDate } from '../src/renderer/utils/dueDates.js'
 
 const TODO_TYPES = ['todo', 'note', 'milestone']
 
@@ -145,15 +147,20 @@ export function createTools(db) {
         if (type !== undefined && !TODO_TYPES.includes(type)) {
           throw new Error(`type must be one of: ${TODO_TYPES.join(', ')}`)
         }
-        const created = db.createTodo(cleanTitle, projectId, type || 'todo')
-        const updated = db.updateTodo({
-          ...created,
-          notes: notes ?? created.notes ?? '',
-          start_date: start_date ?? new Date().toISOString().split('T')[0],
-          end_date: end_date ?? null,
-          importance: validateImportance(importance),
-          status_id: statusId
-        })
+        // Validate before writing, so invalid input leaves no partial todo,
+        // and create + update in one transaction.
+        const cleanImportance = validateImportance(importance)
+        const updated = db.db.transaction(() => {
+          const created = db.createTodo(cleanTitle, projectId, type || 'todo')
+          return db.updateTodo({
+            ...created,
+            notes: notes ?? created.notes ?? '',
+            start_date: start_date ?? formatLocalDate(new Date()),
+            end_date: end_date ?? null,
+            importance: cleanImportance,
+            status_id: statusId
+          })
+        })()
         return trimTodo(db.getAllTodos().find((t) => t.id === updated.id) ?? updated)
       }
     },
@@ -201,8 +208,23 @@ export function createTools(db) {
         required: ['id']
       },
       handler: ({ id, completed = true } = {}) => {
+        // Same transition as completing in the app: set end_date, move into or
+        // out of the Done column, and spawn the next recurrence.
         const existing = getExistingTodo(id)
-        db.updateTodo({ ...existing, completed: completed ? 1 : 0 })
+        const wasCompleted = Boolean(existing.completed)
+        const updates = { ...existing, completed: completed ? 1 : 0 }
+        if (completed !== wasCompleted) {
+          if (completed && !updates.end_date) updates.end_date = formatLocalDate(new Date())
+          updates.status_id = statusForCompletion(
+            existing.status_id ?? null,
+            completed,
+            db.getAllStatuses()
+          )
+        }
+        db.updateTodo(updates)
+        if (completed && !wasCompleted && existing.recurrence_type) {
+          db.createNextRecurrence(id)
+        }
         return trimTodo(db.getTodo(id))
       }
     },

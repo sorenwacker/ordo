@@ -82,6 +82,11 @@ describe('MCP tools', () => {
     it('rejects an out-of-range importance', () => {
       expect(() => tool('add_todo')({ title: 'T', importance: 9 })).toThrow(/between 1 and 5/)
     })
+
+    it('leaves no todo behind when importance is invalid', () => {
+      expect(() => tool('add_todo')({ title: 'T', importance: 2.5 })).toThrow()
+      expect(db.getAllTodos()).toHaveLength(0)
+    })
   })
 
   describe('list_todos', () => {
@@ -131,6 +136,23 @@ describe('MCP tools', () => {
       const todo = tool('add_todo')({ title: 'Toggle me' })
       expect(tool('complete_todo')({ id: todo.id }).completed).toBe(true)
       expect(tool('complete_todo')({ id: todo.id, completed: false }).completed).toBe(false)
+    })
+
+    it('moves the todo into the Done column and back out', () => {
+      const todo = tool('add_todo')({ title: 'Column' })
+      expect(tool('complete_todo')({ id: todo.id }).status).toBe('Done')
+      expect(tool('complete_todo')({ id: todo.id, completed: false }).status).toBeNull()
+    })
+
+    it('creates the next occurrence of a recurring todo', () => {
+      const todo = tool('add_todo')({ title: 'Weekly', end_date: '2026-03-25' })
+      db.updateTodo({ ...db.getTodo(todo.id), recurrence_type: 'weekly', recurrence_interval: 1 })
+
+      tool('complete_todo')({ id: todo.id })
+
+      const open = db.getAllTodos().filter((t) => t.title === 'Weekly' && !t.completed)
+      expect(open).toHaveLength(1)
+      expect(open[0].end_date).toBe('2026-04-01')
     })
   })
 

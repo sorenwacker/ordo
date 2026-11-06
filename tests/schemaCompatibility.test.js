@@ -4,7 +4,7 @@ import { join, dirname, basename } from 'path'
 import { unlinkSync, readdirSync } from 'fs'
 import BetterSqlite3 from 'better-sqlite3'
 import { Database } from '../src/main/database.js'
-import { SCHEMA_VERSION } from '../src/main/schema.js'
+import { SCHEMA_VERSION, createTables, runMigrations } from '../src/main/schema.js'
 
 // Exercises the version-stamp, refuse-newer, pre-migration-backup, legacy
 // FK repair, and schema verification behavior documented in
@@ -160,6 +160,19 @@ describe('Schema compatibility', () => {
       expect(todos).toHaveLength(1)
       expect(todos[0].title).toBe('Legacy task')
       expect(todos[0].notes).toBe('kept')
+    })
+
+    it('keeps todo links when the repair runs with foreign key enforcement on', () => {
+      const raw = new BetterSqlite3(testDbPath)
+      createTables(raw)
+      raw.prepare('INSERT INTO todos (title) VALUES (?)').run('Second task')
+      raw.prepare('INSERT INTO todo_links (source_id, target_id) VALUES (1, 2)').run()
+      raw.pragma('foreign_keys = ON')
+      runMigrations(raw, { info() {}, warn() {}, error() {} })
+
+      expect(raw.pragma('foreign_keys', { simple: true })).toBe(1)
+      expect(raw.prepare('SELECT COUNT(*) AS n FROM todo_links').get().n).toBe(1)
+      raw.close()
     })
 
     it('keeps todos writable even with foreign key enforcement enabled', () => {
