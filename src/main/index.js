@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, screen, dialog, shell, session } from 'electron'
 import { join } from 'path'
+import { pathToFileURL } from 'url'
 import { readFileSync, writeFileSync } from 'fs'
 import { Database } from './database.js'
 import { migrateLegacyUserData } from './legacyData.js'
@@ -28,6 +29,8 @@ import {
   validateUrl,
   validateTodoType
 } from './validators.js'
+
+const RENDERER_URL = pathToFileURL(join(__dirname, '../renderer/index.html')).href
 
 const log = logger.child({ module: 'main' })
 
@@ -156,10 +159,12 @@ app.whenReady().then(() => {
   // so no foreign page can ever run with the preload API attached.
   app.on('web-contents-created', (_event, contents) => {
     contents.on('will-navigate', (event, url) => {
+      // Only the app's own page may load: any other local file (a dropped
+      // .html, a file:// link) would run with window.api attached.
       const allowed =
         process.env.NODE_ENV === 'development'
           ? url.startsWith('http://localhost:5173/')
-          : url.startsWith('file:')
+          : url.split(/[?#]/)[0] === RENDERER_URL
       if (!allowed) {
         log.warn('Blocked navigation', { url })
         event.preventDefault()

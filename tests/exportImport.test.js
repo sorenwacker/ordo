@@ -185,6 +185,19 @@ describe('importData round trip', () => {
     expect(db2.getSetting('theme')).toBe('dark')
   })
 
+  it('reuses existing status columns by name on merge', () => {
+    const before = db2.getAllStatuses().length
+    const done = db1.getAllStatuses().find((st) => st.name === 'Done')
+    const todo = db1.createTodo('In done column', null)
+    db1.updateTodo({ ...db1.getTodo(todo.id), status_id: done.id })
+
+    db2.importData(db1.exportData(), 'merge')
+
+    expect(db2.getAllStatuses()).toHaveLength(before)
+    const imported = db2.db.prepare("SELECT * FROM todos WHERE title = 'In done column'").get()
+    expect(db2.getStatus(imported.status_id).name).toBe('Done')
+  })
+
   it('keeps local settings on merge', () => {
     buildFixture(db1)
     db2.setSetting('theme', 'light')

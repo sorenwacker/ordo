@@ -5,6 +5,7 @@
 
 import { reactive, computed, toRefs } from 'vue'
 import { statusForCompletion, completionForStatus } from '../utils/doneStatus.js'
+import { formatLocalDate } from '../utils/dueDates.js'
 
 /**
  * Reactive todos state (private).
@@ -137,7 +138,7 @@ async function deleteTodo(id) {
 function applyCompletion(todoData, isCompleting) {
   todoData.completed = isCompleting
   if (isCompleting && !todoData.end_date) {
-    todoData.end_date = new Date().toISOString().split('T')[0]
+    todoData.end_date = formatLocalDate(new Date())
   }
 }
 

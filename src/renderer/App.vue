@@ -321,7 +321,6 @@
   import { renderMarkdown } from './utils/markdown.js'
   import {
     initializeMermaid,
-    reinitializeMermaid,
     renderPendingMermaidDiagrams,
     resetProcessedMermaidDiagrams
   } from './utils/mermaid.js'
@@ -1037,7 +1036,7 @@
       toggleTheme() {
         this.theme = this.theme === 'dark' ? 'light' : 'dark'
         localStorage.setItem('todo-theme', this.theme)
-        reinitializeMermaid(this.theme)
+        initializeMermaid(this.theme)
         // Clear processed mermaid diagrams to force re-render
         resetProcessedMermaidDiagrams()
         this.renderMermaid()

@@ -2,26 +2,14 @@ import mermaid from 'mermaid'
 import { marked } from './markdown.js'
 
 /**
- * Initialize mermaid with the minimal startup configuration.
+ * Configure mermaid for a UI theme.
+ *
+ * Called at startup and again when the theme changes, so diagrams render the
+ * same way whether or not the theme was toggled during the session.
  *
  * @param {string} theme - The UI theme ('dark' or 'light').
  */
 export function initializeMermaid(theme) {
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: theme === 'light' ? 'default' : 'dark',
-    securityLevel: 'strict'
-  })
-}
-
-/**
- * Re-initialize mermaid with the full diagram configuration for a theme.
- *
- * Used when the UI theme changes so diagrams re-render with matching colors.
- *
- * @param {string} theme - The UI theme ('dark' or 'light').
- */
-export function reinitializeMermaid(theme) {
   mermaid.initialize({
     startOnLoad: false,
     theme: theme === 'light' ? 'default' : 'dark',

@@ -6,8 +6,23 @@
  * and must provide `navigableTodos` (the cards in rendered order, which
  * `focusedTodoIndex` indexes), `showGlobalSearch`,
  * `showHelpModal`, `selectTodo`, `clearSelection`, `toggleComplete`, `deleteTodo`, `undo`,
- * `redo`, and an `appHeader` ref exposing `focusNewTodoInput`.
+ * `redo`, and an `appHeader` ref exposing `focusNewTodoInput`. The overlay
+ * flags `showImportDialog`, `showResetDialog`, `fullscreenTodoId`,
+ * `editingStatus` and `editingProject` suspend the todo shortcuts.
  */
+// True while a dialog or overlay covers the list, so shortcuts must not act on
+// the todos hidden behind it.
+function isOverlayOpen(host) {
+  return Boolean(
+    host.showHelpModal ||
+    host.showImportDialog ||
+    host.showResetDialog ||
+    host.fullscreenTodoId != null ||
+    host.editingStatus ||
+    host.editingProject
+  )
+}
+
 export default {
   methods: {
     handleKeyDown(e) {
@@ -68,9 +83,17 @@ export default {
           this.showGlobalSearch = false
           return
         }
+        if (this.showHelpModal) {
+          this.showHelpModal = false
+          return
+        }
+        if (isOverlayOpen(this)) return
         this.clearSelection()
         return
       }
+
+      // Dialogs and the fullscreen card handle their own keys
+      if (isOverlayOpen(this)) return
 
       // If global search is open, let it handle its own navigation
       if (this.showGlobalSearch) {
