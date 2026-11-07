@@ -21,6 +21,7 @@ function makeHost(overrides = {}) {
     selectTodo: vi.fn(),
     toggleComplete: vi.fn(),
     deleteTodo: vi.fn(),
+    showDbError: vi.fn(),
     undo: vi.fn(),
     redo: vi.fn(),
     $refs: {},
@@ -96,6 +97,23 @@ describe('keyboard navigation follows the rendered list', () => {
     expect(host.selectTodo).toHaveBeenCalledWith(b.id)
     press(host, 'Delete')
     expect(host.deleteTodo).toHaveBeenCalledWith(b.id)
+  })
+
+  it('moves the focus onto the new last card after deleting the last one', async () => {
+    const host = makeHost({ focusedTodoIndex: 1 })
+    host.deleteTodo = vi.fn(async () => {
+      host.navigableTodos = [a]
+    })
+    press(host, 'Delete')
+    await vi.waitFor(() => expect(host.focusedTodoIndex).toBe(0))
+  })
+
+  it('reports a failed delete', async () => {
+    const host = makeHost({ deleteTodo: vi.fn().mockRejectedValue(new Error('locked')) })
+    press(host, 'Delete')
+    await vi.waitFor(() =>
+      expect(host.showDbError).toHaveBeenCalledWith('Failed to delete todo: locked')
+    )
   })
 
   it('does nothing when nothing is rendered, even if the raw list is not empty', () => {

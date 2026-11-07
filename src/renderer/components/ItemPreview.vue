@@ -2,7 +2,9 @@
   <div v-if="item" class="graph-tooltip" :style="positionStyle">
     <div class="tooltip-title">{{ item.title || item.name }}</div>
     <div v-if="item.project_name" class="tooltip-project">{{ item.project_name }}</div>
-    <div v-if="item.end_date" class="tooltip-deadline">Due: {{ formatDate(item.end_date) }}</div>
+    <div v-if="item.end_date" class="tooltip-deadline">
+      Due: {{ formatDeadline(item.end_date) }}
+    </div>
     <div
       v-if="item.notes && !item.notes_sensitive"
       class="tooltip-notes markdown-body"
@@ -16,6 +18,7 @@
 
 <script>
   import { renderCardMarkdown } from '../utils/markdown.js'
+  import { formatDeadline } from '../utils/dueDates.js'
 
   export default {
     name: 'ItemPreview',
@@ -44,16 +47,7 @@
         const processed = notes.replace(/`{3,}\s*mermaid\b[\s\S]*?`{3,}/gi, '[diagram]')
         return renderCardMarkdown(processed)
       },
-      formatDate(dateString) {
-        if (!dateString) return ''
-        const date = new Date(dateString)
-        const now = new Date()
-        const diffDays = Math.ceil((date - now) / (1000 * 60 * 60 * 24))
-        if (diffDays === 0) return 'Today'
-        if (diffDays === 1) return 'Tomorrow'
-        if (diffDays === -1) return 'Yesterday'
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      }
+      formatDeadline
     }
   }
 </script>

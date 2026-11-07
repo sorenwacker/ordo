@@ -65,6 +65,20 @@ export function addRecurrenceStep(dateStr, type, interval) {
   return formatDateUTC(date)
 }
 
+/**
+ * Decode a stored setting. Values are stored as JSON; rows written by older
+ * versions hold plain strings, which are returned unchanged.
+ * @param {string} raw - value column of a settings row
+ * @returns {*} the decoded value
+ */
+function parseSettingValue(raw) {
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return raw
+  }
+}
+
 export class Database {
   /**
    * @param {string|null} dbPath - Database file; null resolves the app default.
@@ -750,20 +764,12 @@ export class Database {
   // Settings operations
   getSetting(key) {
     const row = this.db.prepare('SELECT value FROM settings WHERE key = ?').get(key)
-    if (!row) return null
-    try {
-      return JSON.parse(row.value)
-    } catch (error) {
-      log.warn('Failed to parse setting value as JSON, returning raw string', {
-        key,
-        error: error.message
-      })
-      return row.value
-    }
+    return row ? parseSettingValue(row.value) : null
   }
 
   setSetting(key, value) {
-    const stringValue = typeof value === 'string' ? value : JSON.stringify(value)
+    // Always JSON-encode, so strings keep their type on the way back
+    const stringValue = JSON.stringify(value)
     this.db
       .prepare(
         `
@@ -780,15 +786,7 @@ export class Database {
     const rows = this.db.prepare('SELECT key, value FROM settings').all()
     const settings = {}
     for (const row of rows) {
-      try {
-        settings[row.key] = JSON.parse(row.value)
-      } catch (error) {
-        log.warn('Failed to parse setting value as JSON, using raw string', {
-          key: row.key,
-          error: error.message
-        })
-        settings[row.key] = row.value
-      }
+      settings[row.key] = parseSettingValue(row.value)
     }
     return settings
   }
@@ -918,14 +916,6 @@ export class Database {
   }
 
   /**
-   * Replace the database with a freshly created one, keeping the current
-   * file as a timestamped backup next to it.
-   *
-   * @returns {string} Path of the backup file.
-   * @throws {Error} When the current file cannot be moved aside; the
-   *   original database is reopened before rethrowing.
-   */
-  /**
    * Build a sibling file path of the form <name>-<label>-YYMMDD-HHMMSS.db.
    *
    * @param {string} label - Purpose marker, e.g. "backup" or "premigrate".
@@ -940,19 +930,37 @@ export class Database {
     return `${this.dbPath.replace(/\.db$/, '')}-${label}-${stamp}.db`
   }
 
+  /**
+   * Replace the database with a freshly created one, keeping the current
+   * file as a timestamped backup next to it.
+   *
+   * @returns {string} Path of the backup file.
+   * @throws {Error} When the current file cannot be moved aside; the
+   *   original files are moved back and the database is reopened before
+   *   rethrowing.
+   */
   reset() {
     const backupPath = this.timestampedSiblingPath('backup')
 
+    // Fold the WAL into the main file so the files moved below are complete
+    this.db.pragma('wal_checkpoint(TRUNCATE)')
     this.db.close()
+    const moved = []
     try {
-      renameSync(this.dbPath, backupPath)
-      for (const suffix of ['-wal', '-shm']) {
+      for (const suffix of ['', '-wal', '-shm']) {
         if (existsSync(this.dbPath + suffix)) {
           renameSync(this.dbPath + suffix, backupPath + suffix)
+          moved.push(suffix)
         }
       }
     } catch (error) {
+      // Put back whatever was already moved, so the old WAL never ends up
+      // next to a new, empty file
+      for (const suffix of moved.reverse()) {
+        renameSync(backupPath + suffix, this.dbPath + suffix)
+      }
       this.db = new this.BetterSqlite3(this.dbPath)
+      this.init()
       throw error
     }
 

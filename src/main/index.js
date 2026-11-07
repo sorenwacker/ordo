@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, screen, dialog, shell, session } from 'electron'
 import { join } from 'path'
 import { pathToFileURL } from 'url'
-import { readFileSync, writeFileSync } from 'fs'
+import { readFileSync, statSync, writeFileSync } from 'fs'
 import { Database } from './database.js'
 import { migrateLegacyUserData } from './legacyData.js'
 import logger from './logger.js'
@@ -657,12 +657,13 @@ app.whenReady().then(() => {
     if (filePaths && filePaths.length > 0) {
       const importPath = filePaths[0]
       try {
-        const fileContent = readFileSync(importPath, 'utf-8')
-        // Limit file size to prevent memory issues
-        if (fileContent.length > MAX_IMPORT_FILE_SIZE) {
-          log.warn('Import file too large', { path: importPath, size: fileContent.length })
+        // Check the size on disk before reading, to prevent memory issues
+        const { size } = statSync(importPath)
+        if (size > MAX_IMPORT_FILE_SIZE) {
+          log.warn('Import file too large', { path: importPath, size })
           return { success: false, error: 'File too large (max 50MB)' }
         }
+        const fileContent = readFileSync(importPath, 'utf-8')
         const importData = JSON.parse(fileContent)
         database.importData(importData, validatedMode)
         // Import replaces DB contents, so any undo/redo entries now reference

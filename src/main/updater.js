@@ -160,6 +160,6 @@ export function checkForUpdates() {
 function sendStatusToWindow(status, data = {}) {
   const win = getMainWindow()
   if (win) {
-    win.webContents.send('update-status', { status, ...data })
+    win.webContents.send('updater-status', { status, ...data })
   }
 }

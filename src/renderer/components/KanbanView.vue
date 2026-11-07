@@ -101,10 +101,10 @@
         <div class="column-header">
           <span class="column-dot" style="background: #666"></span>
           <h3>No Status</h3>
-          <span class="column-count">{{ noStatusTodos.length }}</span>
+          <span class="column-count">{{ noStatusColumnTodos.length }}</span>
         </div>
         <draggable
-          :model-value="noStatusTodos"
+          :model-value="noStatusColumnTodos"
           item-key="id"
           class="kanban-cards"
           group="kanban-status"
@@ -212,10 +212,6 @@
         type: Boolean,
         default: false
       },
-      noStatusTodos: {
-        type: Array,
-        default: () => []
-      },
       selectedTodoId: {
         type: Number,
         default: null
@@ -251,6 +247,11 @@
       }
     },
     computed: {
+      // Built from allTodos like the status columns, so it follows the same
+      // sort order and hides deleted cards
+      noStatusColumnTodos() {
+        return this.allTodos.filter((t) => !t.status_id && !t.deleted)
+      },
       // Completed cards are filtered out upstream while "Show done" is off, so
       // the Done column could only ever be empty; both layouts leave it out.
       visibleStatuses() {

@@ -82,5 +82,12 @@ contextBridge.exposeInMainWorld('api', {
     const handler = (_, state) => callback(state)
     ipcRenderer.on('history-changed', handler)
     return () => ipcRenderer.removeListener('history-changed', handler)
+  },
+
+  // Auto-update progress pushed by src/main/updater.js
+  onUpdaterStatus: (callback) => {
+    const handler = (_, status) => callback(status)
+    ipcRenderer.on('updater-status', handler)
+    return () => ipcRenderer.removeListener('updater-status', handler)
   }
 })

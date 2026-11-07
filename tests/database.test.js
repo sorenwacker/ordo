@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { tmpdir } from 'os'
 import { join, dirname } from 'path'
-import { unlinkSync, existsSync } from 'fs'
+import { unlinkSync, existsSync, mkdirSync, rmSync } from 'fs'
 import { Database } from '../src/main/database.js'
 
 // Exercises the real production Database class (src/main/database.js).
@@ -516,6 +516,22 @@ describe('Database', () => {
       expect(db.getSetting('theme')).toBe('dark')
     })
 
+    it('should keep strings that look like JSON as strings', () => {
+      db.setSetting('version', '9.9.9')
+      db.setSetting('flag', 'true')
+      db.setSetting('count', '123')
+
+      expect(db.getSetting('version')).toBe('9.9.9')
+      expect(db.getSetting('flag')).toBe('true')
+      expect(db.getSetting('count')).toBe('123')
+      expect(db.getAllSettings()).toMatchObject({ flag: 'true', count: '123' })
+    })
+
+    it('should read plain strings written by older versions', () => {
+      db.db.prepare("INSERT INTO settings (key, value) VALUES ('theme', 'dark')").run()
+      expect(db.getSetting('theme')).toBe('dark')
+    })
+
     it('should set and retrieve a boolean setting', () => {
       db.setSetting('hide_completed', true)
       expect(db.getSetting('hide_completed')).toBe(true)
@@ -706,6 +722,21 @@ describe('Database', () => {
       backup.close()
       expect(todos).toHaveLength(1)
       expect(todos[0].title).toBe('Preserved task')
+    })
+
+    it('should reopen the original database when the backup cannot be written', () => {
+      db.createTodo('Survivor')
+      const blocked = join(tmpdir(), `blocked-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+      mkdirSync(join(blocked, 'occupied'), { recursive: true })
+      db.timestampedSiblingPath = () => blocked
+
+      try {
+        expect(() => db.reset()).toThrow()
+        expect(db.getAllTodos().map((t) => t.title)).toEqual(['Survivor'])
+        expect(db.db.pragma('busy_timeout', { simple: true })).toBe(5000)
+      } finally {
+        rmSync(blocked, { recursive: true, force: true })
+      }
     })
 
     it('should keep the database usable at the original path after reset', () => {
