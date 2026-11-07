@@ -37,6 +37,8 @@ The rebuild runs `DROP TABLE todos` inside a transaction. SQLite's documented 12
 
 ### Soft-deleting a project permanently detaches its todos; restoreProject does not bring them back
 
+**Status:** fixed (schema version 2 adds `todos.deleted_project_id`).
+
 `src/main/database.js:145` - correctness
 
 deleteProject runs `UPDATE todos SET project_id = NULL WHERE project_id = ?` before setting deleted_at. The trash bin offers restoreProject, but that only clears deleted_at, so a restored project comes back empty and its todos stay in the inbox. The todos' topic_id values still point at the project's topics. The two UPDATEs also don't run in a transaction.

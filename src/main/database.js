@@ -200,8 +200,13 @@ export class Database {
 
   deleteProject(id) {
     this.db.transaction(() => {
-      // Move all todos in this project to inbox (no project)
-      this.db.prepare('UPDATE todos SET project_id = NULL WHERE project_id = ?').run(id)
+      // Move the project's todos to the inbox, remembering where they came
+      // from so restoreProject can put them back
+      this.db
+        .prepare(
+          'UPDATE todos SET deleted_project_id = project_id, project_id = NULL WHERE project_id = ?'
+        )
+        .run(id)
 
       // Soft delete: set deleted_at timestamp
       this.db.prepare('UPDATE projects SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?').run(id)
@@ -210,12 +215,28 @@ export class Database {
   }
 
   restoreProject(id) {
-    this.db.prepare('UPDATE projects SET deleted_at = NULL WHERE id = ?').run(id)
+    this.db.transaction(() => {
+      this.db.prepare('UPDATE projects SET deleted_at = NULL WHERE id = ?').run(id)
+      // Reattach todos still in the inbox; ones the user has since moved to
+      // another project stay where they are
+      this.db
+        .prepare(
+          `UPDATE todos SET project_id = CASE WHEN project_id IS NULL THEN deleted_project_id ELSE project_id END,
+             deleted_project_id = NULL
+           WHERE deleted_project_id = ?`
+        )
+        .run(id)
+    })()
     return this.getProject(id)
   }
 
   permanentlyDeleteProject(id) {
-    this.db.prepare('DELETE FROM projects WHERE id = ?').run(id)
+    this.db.transaction(() => {
+      this.db
+        .prepare('UPDATE todos SET deleted_project_id = NULL WHERE deleted_project_id = ?')
+        .run(id)
+      this.db.prepare('DELETE FROM projects WHERE id = ?').run(id)
+    })()
     return true
   }
 
