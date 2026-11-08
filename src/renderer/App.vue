@@ -80,13 +80,9 @@
     <ProjectModal
       :project="editingProject"
       :colors="projectColors"
-      :project-tags="editingProjectTags"
-      :all-tags="allTags"
       @save="saveProjectFromModal"
       @cancel="cancelEditProject"
       @delete="deleteProjectConfirm"
-      @add-tag="addProjectTag"
-      @remove-tag="removeProjectTag"
     />
 
     <div class="main-wrapper">
@@ -249,7 +245,6 @@
                 :grouped-todos="groupedTodos"
                 :statuses="statuses"
                 :show-completed="showCompleted"
-                :no-status-todos="noStatusTodos"
                 :selected-todo-id="null"
                 :selected-todo-ids="selectedTodoIds"
                 :all-todos="sortedKanbanTodos"
@@ -365,7 +360,7 @@
     data() {
       return {
         // todos, allTodos, selectedTodoIds, focusedTodoIndex now from todosComposable
-        // projects, editingProject, editingProjectTags now from projectsComposable
+        // projects and editingProject now from projectsComposable
         // statuses, editingStatus now from statusesComposable
         currentFilter: null,
         tabViews: JSON.parse(localStorage.getItem('tab-views') || '{}'),
@@ -471,9 +466,6 @@
       editingProject() {
         return this.projectsComposable.editingProject.value
       },
-      editingProjectTags() {
-        return this.projectsComposable.editingProjectTags.value
-      },
       editingStatus() {
         return this.statusesComposable.editingStatus.value
       },
@@ -535,9 +527,6 @@
       inboxTodos() {
         return this.filteredTodos.filter((t) => !t.project_id)
       },
-      noStatusTodos() {
-        return this.filteredTodos.filter((t) => !t.status_id)
-      },
       navigableTodos() {
         return navigationOrder({
           groupByProject: this.groupByProject,
@@ -549,8 +538,8 @@
         return this.navigableTodos[this.focusedTodoIndex] || null
       },
       sortedTodos() {
-        this.todosComposable.setSortBy(this.sortBy)
-        // The composable's sortedTodos uses filteredTodos as base, which we've already set up above
+        // The composable's sort and filter state is kept in step by the
+        // watchers below
         return this.todosComposable.sortedTodos.value
       },
       groupedTodos() {
@@ -584,11 +573,6 @@
         return groups
       },
       filteredTodos() {
-        // Set filter state in composable for its internal computed properties
-        this.todosComposable.setCurrentFilter(this.currentFilter)
-        this.todosComposable.setSearchQuery(this.searchQuery)
-        this.todosComposable.setShowCompleted(this.showCompleted)
-
         return this.todosComposable.filteredTodos.value
       },
       sortedKanbanTodos() {
@@ -613,6 +597,46 @@
       }
     },
     watch: {
+      // Mirror the view state into the composable. Synchronous, so its
+      // reloads after an edit always use the filter that is currently shown.
+      currentFilter: [
+        {
+          handler(val) {
+            this.todosComposable.setCurrentFilter(val)
+          },
+          immediate: true,
+          flush: 'sync'
+        },
+        function () {
+          // Flush any pending notes save for the project we are leaving, then
+          // load the newly selected project's notes into the editor draft.
+          this.flushProjectNotes()
+          this.loadProjectNotesDraft()
+        }
+      ],
+      searchQuery: {
+        handler(val) {
+          this.todosComposable.setSearchQuery(val)
+        },
+        immediate: true,
+        flush: 'sync'
+      },
+      showCompleted: {
+        handler(val) {
+          this.todosComposable.setShowCompleted(val)
+          localStorage.setItem('show-completed', val)
+        },
+        immediate: true,
+        flush: 'sync'
+      },
+      sortBy: {
+        handler(val) {
+          this.todosComposable.setSortBy(val)
+          localStorage.setItem('sort-by', val)
+        },
+        immediate: true,
+        flush: 'sync'
+      },
       currentView(val) {
         // Handle entering new view
         if (val === 'cards') {
@@ -620,12 +644,6 @@
             this.applyMasonryLayout()
           })
         }
-      },
-      currentFilter() {
-        // Flush any pending notes save for the project we are leaving, then load
-        // the newly selected project's notes into the editor draft.
-        this.flushProjectNotes()
-        this.loadProjectNotesDraft()
       },
       showProjectNotes(val) {
         localStorage.setItem('show-project-notes', val)
@@ -668,39 +686,38 @@
       },
       groupByProject(val) {
         localStorage.setItem('group-by-project', val)
-      },
-      showCompleted(val) {
-        localStorage.setItem('show-completed', val)
-      },
-      sortBy(val) {
-        localStorage.setItem('sort-by', val)
       }
     },
     async mounted() {
-      await this.loadData()
+      // A failed load must not stop the listeners below from being registered
+      try {
+        await this.loadData()
 
-      // Restore last used filter from localStorage
-      const savedFilter = localStorage.getItem('current-filter')
-      if (savedFilter) {
-        try {
-          const filter = JSON.parse(savedFilter)
-          // Verify the filter is valid (project still exists if it's a number)
-          let restored = null
-          if (filter === 'inbox' || filter === 'trash') {
-            restored = filter
-          } else if (typeof filter === 'number' && this.projects.some((p) => p.id === filter)) {
-            restored = filter
+        // Restore last used filter from localStorage
+        const savedFilter = localStorage.getItem('current-filter')
+        if (savedFilter) {
+          try {
+            const filter = JSON.parse(savedFilter)
+            // Verify the filter is valid (project still exists if it's a number)
+            let restored = null
+            if (filter === 'inbox' || filter === 'trash') {
+              restored = filter
+            } else if (typeof filter === 'number' && this.projects.some((p) => p.id === filter)) {
+              restored = filter
+            }
+            if (restored !== null && restored !== this.currentFilter) {
+              this.currentFilter = restored
+              await this.loadTodos()
+            }
+          } catch {
+            // Failed to restore filter, will use default
           }
-          if (restored !== null && restored !== this.currentFilter) {
-            this.currentFilter = restored
-            await this.loadTodos()
-          }
-        } catch {
-          // Failed to restore filter, will use default
         }
+        this.databasePath = await window.api.getDatabasePath()
+        this.appVersion = await window.api.getAppVersion()
+      } catch (error) {
+        this.showDbError('Failed to load data: ' + error.message)
       }
-      this.databasePath = await window.api.getDatabasePath()
-      this.appVersion = await window.api.getAppVersion()
 
       window.api.onRefreshTodos(() => {
         this.loadAllTodos()
@@ -921,12 +938,6 @@
       },
       cancelEditProject() {
         this.projectsComposable.cancelEditProject()
-      },
-      async addProjectTag(tagName) {
-        await this.projectsComposable.addProjectTag(tagName, this.loadAllTags.bind(this))
-      },
-      async removeProjectTag(tagId) {
-        await this.projectsComposable.removeProjectTag(tagId)
       },
       async saveProject() {
         await this.projectsComposable.saveProject(

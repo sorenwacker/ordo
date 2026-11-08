@@ -37,6 +37,8 @@ The rebuild runs `DROP TABLE todos` inside a transaction. SQLite's documented 12
 
 ### Soft-deleting a project permanently detaches its todos; restoreProject does not bring them back
 
+**Status:** fixed (schema version 2 adds `todos.deleted_project_id`).
+
 `src/main/database.js:145` - correctness
 
 deleteProject runs `UPDATE todos SET project_id = NULL WHERE project_id = ?` before setting deleted_at. The trash bin offers restoreProject, but that only clears deleted_at, so a restored project comes back empty and its todos stay in the inbox. The todos' topic_id values still point at the project's topics. The two UPDATEs also don't run in a transaction.
@@ -127,6 +129,8 @@ App.vue calls initializeMermaid(theme) at startup. That sets only theme and secu
 
 ### setSetting/getSetting round trip changes the type of string values
 
+**Status:** fixed
+
 `src/main/database.js:705` - correctness
 
 setSetting stores strings as-is (`typeof value === 'string' ? value : JSON.stringify(value)`), while getSetting always runs JSON.parse. So the string 'dark' fails to parse and logs a warning on every read. That includes updater.js, which stores a version string like '9.9.9' and reads it on every update check. Strings that happen to be valid JSON come back as a different type: setSetting('k', 'true') returns boolean true, '123' returns a number, 'null' returns null. getAllSettings has the same asymmetry.
@@ -134,6 +138,8 @@ setSetting stores strings as-is (`typeof value === 'string' ? value : JSON.strin
 **Fix:** Always store JSON.stringify(value), so strings are saved with their quotes, and keep the raw-string fallback in getSetting only for rows written before the fix.
 
 ### reset()'s JSDoc block is attached to timestampedSiblingPath
+
+**Status:** fixed
 
 `src/main/database.js:860` - docstring
 
@@ -143,6 +149,8 @@ The doc block that describes reset ('Replace the database with a freshly created
 
 ### reset() error path reopens without init and can pair a new empty file with an orphaned WAL
 
+**Status:** fixed
+
 `src/main/database.js:894` - correctness
 
 If renameSync(this.dbPath, backupPath) succeeds but renaming '-wal' or '-shm' then fails, the catch block runs `new this.BetterSqlite3(this.dbPath)`. That creates a fresh empty database at dbPath next to the leftover -wal/-shm files from the old database, and the stale WAL frames can then be applied to the wrong file. The reopened handle also skips init(), so busy_timeout is not set and no schema exists. The JSDoc promise that 'the original database is reopened' only holds if the very first rename fails.
@@ -150,6 +158,8 @@ If renameSync(this.dbPath, backupPath) succeeds but renaming '-wal' or '-shm' th
 **Fix:** If the main file was already moved, rename it back before reopening, then call init() on the reopened handle. Alternatively, checkpoint with wal_checkpoint(TRUNCATE) before closing so no -wal file is left to move.
 
 ### Import size limit is checked after the whole file is already in memory
+
+**Status:** fixed
 
 `src/main/index.js:655` - correctness
 
@@ -159,6 +169,8 @@ If renameSync(this.dbPath, backupPath) succeeds but renaming '-wal' or '-shm' th
 
 ### Updater status events are sent on a channel nobody listens to, and the name collides with an invoke channel
 
+**Status:** fixed
+
 `src/main/updater.js:163` - consistency
 
 `sendStatusToWindow` emits `win.webContents.send('update-status', ...)`. The preload has no listener for it; a grep of src/ and tests/ finds no `onUpdateStatus` or `ipcRenderer.on('update-status')`. So all checking/available/downloading/error notifications are dropped. 'update-status' is also the ipcMain.handle channel for editing a kanban status (index.js:268, preload line 20), so the two unrelated features share a name.
@@ -166,6 +178,8 @@ If renameSync(this.dbPath, backupPath) succeeds but renaming '-wal' or '-shm' th
 **Fix:** Rename the push channel (e.g. 'updater-status') and expose an `onUpdaterStatus` subscription in the preload. Or remove sendStatusToWindow if the UI will not show updater status.
 
 ### Focus adjustment after Delete never runs
+
+**Status:** fixed
 
 `src/renderer/mixins/keyboardShortcutsMixin.js:135` - correctness
 
@@ -175,6 +189,8 @@ If renameSync(this.dbPath, backupPath) succeeds but renaming '-wal' or '-shm' th
 
 ### mounted() aborts entirely if initial data load fails
 
+**Status:** fixed
+
 `src/renderer/App.vue:680` - correctness
 
 `await this.loadData()` runs first in mounted with no try/catch. If any IPC call rejects (for example a DB error), the rest of mounted never runs. The keydown/focus listeners, onRefreshTodos, onHistoryChanged, the external-link click handler and the resize observer are never registered, and the user gets no message (the dbError banner exists but is not used here).
@@ -182,6 +198,8 @@ If renameSync(this.dbPath, backupPath) succeeds but renaming '-wal' or '-shm' th
 **Fix:** Wrap loadData in try/catch and call showDbError, then continue registering listeners.
 
 ### Computed properties change composable state as a side effect
+
+**Status:** fixed
 
 `src/renderer/App.vue:552` - design
 
@@ -191,6 +209,8 @@ If renameSync(this.dbPath, backupPath) succeeds but renaming '-wal' or '-shm' th
 
 ### Project tag props and events are passed to ProjectModal but nothing declares or handles them
 
+**Status:** fixed (the dead bindings were removed; project tags still have no editing UI)
+
 `src/renderer/components/ProjectModal.vue:23` - correctness
 
 App.vue (lines 83-89) renders `<ProjectModal :project-tags="editingProjectTags" :all-tags="allTags" @add-tag="addProjectTag" @remove-tag="removeProjectTag">`. ProjectModal declares only `project` and `colors` props and emits only ['save','cancel','delete']. EntityModal does not declare these either. A grep of src shows that `editingProjectTags`, `allTags`, and the renderer methods `addProjectTag`/`removeProjectTag` are not defined anywhere in the renderer; they exist only in main/preload. As a result the bindings read undefined instance properties (Vue warns at render), they fall through as attributes onto EntityModal's root (or cause an 'extraneous non-props attributes' warning when that root is a v-if comment), and project tag editing cannot be reached from the UI even though the IPC exists.
@@ -198,6 +218,8 @@ App.vue (lines 83-89) renders `<ProjectModal :project-tags="editingProjectTags" 
 **Fix:** Either add projectTags/allTags props and add-tag/remove-tag emits to ProjectModal/EntityModal and implement the App.vue state and methods, or remove the dead bindings from App.vue.
 
 ### formatDate brings back the UTC/time-of-day due-date bug that dueDates.formatDeadline fixes
+
+**Status:** fixed
 
 `src/renderer/components/ItemPreview.vue:31` - correctness
 
@@ -207,6 +229,8 @@ App.vue (lines 83-89) renders `<ProjectModal :project-tags="editingProjectTags" 
 
 ### No Status column ignores the sort order and the deleted filter that the status columns apply
 
+**Status:** fixed
+
 `src/renderer/components/KanbanView.vue:104` - consistency
 
 Status columns come from `getStatusTodos(status.id)`, which filters `allTodos`. App passes `sortedKanbanTodos` for allTodos, whose comment says 'Kanban columns must honour the sort dropdown'. The No Status column instead uses the separate `noStatusTodos` prop, which App builds from the unsorted `filteredTodos`. It also skips the `!t.deleted` check. So the first column ignores the chosen sort while every other column follows it. The stacked layout handles this correctly through `getProjectStatusTodos(group.id, null)`.
@@ -214,6 +238,8 @@ Status columns come from `getStatusTodos(status.id)`, which filters `allTodos`. 
 **Fix:** Build the no-status column from allTodos as well, e.g. a `noStatusColumnTodos` computed: `allTodos.filter(t => !t.status_id && !t.deleted)`. Then drop the `noStatusTodos` prop.
 
 ### loadTodos clears the list before awaiting and has no protection against stale responses
+
+**Status:** fixed
 
 `src/renderer/composables/useTodos.js:94` - correctness
 

@@ -5,7 +5,7 @@
  * The host component registers `handleKeyDown` as a window keydown listener
  * and must provide `navigableTodos` (the cards in rendered order, which
  * `focusedTodoIndex` indexes), `showGlobalSearch`,
- * `showHelpModal`, `selectTodo`, `clearSelection`, `toggleComplete`, `deleteTodo`, `undo`,
+ * `showHelpModal`, `selectTodo`, `clearSelection`, `toggleComplete`, `deleteTodo`, `showDbError`, `undo`,
  * `redo`, and an `appHeader` ref exposing `focusNewTodoInput`. The overlay
  * flags `showImportDialog`, `showResetDialog`, `fullscreenTodoId`,
  * `editingStatus` and `editingProject` suspend the todo shortcuts.
@@ -158,11 +158,14 @@ export default {
         case 'Delete':
           e.preventDefault()
           if (this.focusedTodoIndex >= 0 && this.navigableTodos[this.focusedTodoIndex]) {
-            this.deleteTodo(this.navigableTodos[this.focusedTodoIndex].id)
-            // Adjust focus after deletion
-            if (this.focusedTodoIndex >= this.navigableTodos.length) {
-              this.focusedTodoIndex = this.navigableTodos.length - 1
-            }
+            Promise.resolve(this.deleteTodo(this.navigableTodos[this.focusedTodoIndex].id))
+              .then(() => {
+                // Keep the focus on a card once the list has reloaded
+                if (this.focusedTodoIndex >= this.navigableTodos.length) {
+                  this.focusedTodoIndex = this.navigableTodos.length - 1
+                }
+              })
+              .catch((error) => this.showDbError('Failed to delete todo: ' + error.message))
           }
           break
       }

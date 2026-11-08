@@ -48,6 +48,12 @@ canonical column set, copy all rows, drop the old table, rename. The
 `category_id` column and its data are dropped; all other data is preserved
 (and remains available in the pre-migration backup).
 
+Migration to schema version 2 adds the `todos.deleted_project_id` column.
+When a project is moved to the trash its todos go to the inbox and the
+column records the project they came from; restoring the project moves the
+todos that are still in the inbox back into it. Older app versions refuse to
+open a version 2 file, as described above.
+
 ## Schema verification
 
 After opening, the app checks via `PRAGMA table_info` that the todos,

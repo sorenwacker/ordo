@@ -155,8 +155,8 @@ export function importData(db, importData, mode = 'merge') {
     // Import todos
     if (todos && todos.length > 0) {
       const stmt = db.prepare(`
-        INSERT INTO todos (title, notes, notes_sensitive, end_date, start_date, completed, completed_at, archived_at, sort_order, importance, project_id, status_id, topic_id, type, milestone_date, created_at, updated_at, deleted_at, recurrence_type, recurrence_interval, recurrence_end_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO todos (title, notes, notes_sensitive, end_date, start_date, completed, completed_at, archived_at, sort_order, importance, project_id, status_id, topic_id, type, milestone_date, created_at, updated_at, deleted_at, recurrence_type, recurrence_interval, recurrence_end_date, deleted_project_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       todos.forEach((t) => {
         const newProjectId = t.project_id ? projectIdMap.get(t.project_id) : null
@@ -184,7 +184,8 @@ export function importData(db, importData, mode = 'merge') {
           t.deleted_at ?? null,
           t.recurrence_type,
           t.recurrence_interval ?? 1,
-          t.recurrence_end_date
+          t.recurrence_end_date,
+          (t.deleted_project_id && projectIdMap.get(t.deleted_project_id)) ?? null
         )
         todoIdMap.set(t.id, result.lastInsertRowid)
       })

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { tmpdir } from 'os'
 import { join, dirname } from 'path'
-import { unlinkSync, existsSync } from 'fs'
+import { unlinkSync, existsSync, mkdirSync, rmSync } from 'fs'
 import { Database } from '../src/main/database.js'
 
 // Exercises the real production Database class (src/main/database.js).
@@ -137,6 +137,44 @@ describe('Database', () => {
 
       expect(db.getAllProjects()).toHaveLength(1)
       expect(db.getDeletedProjects()).toHaveLength(0)
+    })
+
+    it("should reattach a restored project's todos", () => {
+      const project = db.createProject('Work')
+      const todo = db.createTodo('Task', project.id)
+
+      db.deleteProject(project.id)
+      db.restoreProject(project.id)
+
+      expect(db.getTodo(todo.id).project_id).toBe(project.id)
+      expect(db.getAllTodos('inbox')).toHaveLength(0)
+    })
+
+    it('should leave todos moved elsewhere while the project was deleted', () => {
+      const work = db.createProject('Work')
+      const home = db.createProject('Home')
+      const moved = db.createTodo('Moved', work.id)
+      const stayed = db.createTodo('Stayed', work.id)
+
+      db.deleteProject(work.id)
+      db.updateTodo({ ...db.getTodo(moved.id), project_id: home.id })
+      db.restoreProject(work.id)
+
+      expect(db.getTodo(moved.id).project_id).toBe(home.id)
+      expect(db.getTodo(stayed.id).project_id).toBe(work.id)
+      expect(db.getTodo(moved.id).deleted_project_id).toBeNull()
+    })
+
+    it('should forget the origin of todos when a project is purged', () => {
+      const project = db.createProject('Work')
+      const todo = db.createTodo('Task', project.id)
+
+      db.deleteProject(project.id)
+      db.permanentlyDeleteProject(project.id)
+
+      const reloaded = db.getTodo(todo.id)
+      expect(reloaded.project_id).toBeNull()
+      expect(reloaded.deleted_project_id).toBeNull()
     })
 
     it('should permanently delete a project', () => {
@@ -478,6 +516,22 @@ describe('Database', () => {
       expect(db.getSetting('theme')).toBe('dark')
     })
 
+    it('should keep strings that look like JSON as strings', () => {
+      db.setSetting('version', '9.9.9')
+      db.setSetting('flag', 'true')
+      db.setSetting('count', '123')
+
+      expect(db.getSetting('version')).toBe('9.9.9')
+      expect(db.getSetting('flag')).toBe('true')
+      expect(db.getSetting('count')).toBe('123')
+      expect(db.getAllSettings()).toMatchObject({ flag: 'true', count: '123' })
+    })
+
+    it('should read plain strings written by older versions', () => {
+      db.db.prepare("INSERT INTO settings (key, value) VALUES ('theme', 'dark')").run()
+      expect(db.getSetting('theme')).toBe('dark')
+    })
+
     it('should set and retrieve a boolean setting', () => {
       db.setSetting('hide_completed', true)
       expect(db.getSetting('hide_completed')).toBe(true)
@@ -668,6 +722,21 @@ describe('Database', () => {
       backup.close()
       expect(todos).toHaveLength(1)
       expect(todos[0].title).toBe('Preserved task')
+    })
+
+    it('should reopen the original database when the backup cannot be written', () => {
+      db.createTodo('Survivor')
+      const blocked = join(tmpdir(), `blocked-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+      mkdirSync(join(blocked, 'occupied'), { recursive: true })
+      db.timestampedSiblingPath = () => blocked
+
+      try {
+        expect(() => db.reset()).toThrow()
+        expect(db.getAllTodos().map((t) => t.title)).toEqual(['Survivor'])
+        expect(db.db.pragma('busy_timeout', { simple: true })).toBe(5000)
+      } finally {
+        rmSync(blocked, { recursive: true, force: true })
+      }
     })
 
     it('should keep the database usable at the original path after reset', () => {

@@ -7,7 +7,7 @@
  * database file via PRAGMA user_version. Increment together with any schema
  * change and its migration step. 0 marks databases from before versioning.
  */
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 // Full current column set of the todos table. Used both for creating fresh
 // databases and as the rebuild target when repairing legacy tables, so the
@@ -37,6 +37,7 @@ const TODOS_COLUMNS_DDL = `
       topic_id INTEGER REFERENCES project_topics(id) ON DELETE SET NULL,
       completed_at TEXT,
       archived_at TEXT,
+      deleted_project_id INTEGER,
       FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
 `
 
@@ -65,7 +66,8 @@ const REQUIRED_COLUMNS = {
     'milestone_date',
     'topic_id',
     'completed_at',
-    'archived_at'
+    'archived_at',
+    'deleted_project_id'
   ]
 }
 
@@ -236,6 +238,9 @@ export function runMigrations(db, log) {
   addColumn(db, log, 'todos', 'topic_id INTEGER REFERENCES project_topics(id) ON DELETE SET NULL')
   addColumn(db, log, 'todos', 'completed_at TEXT')
   addColumn(db, log, 'todos', 'archived_at TEXT')
+  // Remembers the project a todo was detached from when that project was
+  // moved to the trash, so restoring the project can reattach it
+  addColumn(db, log, 'todos', 'deleted_project_id INTEGER')
   // Persistent per-project notes
   addColumn(db, log, 'projects', "notes TEXT DEFAULT ''", 'ADD COLUMN notes to projects')
 

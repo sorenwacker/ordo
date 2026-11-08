@@ -87,13 +87,27 @@ async function loadAllTodos() {
   state.allTodos = await window.api.getTodos(null)
 }
 
+// Bookkeeping for loadTodos: the id of the latest call and the filter whose
+// todos state.todos currently holds
+let loadTodosRequest = 0
+let loadedTodosFilter
+
 /**
  * Load todos for the current filter.
  * @param {number|string|null} filter - Project ID, 'inbox', 'trash', 'archive', or null for all
  */
 async function loadTodos(filter) {
-  state.todos = []
-  state.todos = await window.api.getTodos(filter)
+  const request = ++loadTodosRequest
+  // Only clear when switching filters, so reloading the same list after an
+  // edit does not flash an empty view
+  if (filter !== loadedTodosFilter) {
+    state.todos = []
+    loadedTodosFilter = filter
+  }
+  const todos = await window.api.getTodos(filter)
+  // A newer call has started meanwhile; its response wins
+  if (request !== loadTodosRequest) return
+  state.todos = todos
 }
 
 /**
