@@ -252,3 +252,65 @@ describe('full-screen wiring', () => {
     expect(app.match(/@open-fullscreen=/g)).toHaveLength(2)
   })
 })
+
+describe('full-screen search', () => {
+  function pressFind() {
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'f', metaKey: true, bubbles: true, cancelable: true })
+    )
+  }
+
+  async function openSearch(wrapper, query) {
+    pressFind()
+    await wrapper.vm.$nextTick()
+    const input = wrapper.get('input.fullscreen-search-input')
+    await input.setValue(query)
+    await wrapper.vm.$nextTick()
+    return input
+  }
+
+  it('opens the search box on Cmd+F and highlights matches with a counter', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'apple pie and apple tart' }) })
+    expect(wrapper.find('.fullscreen-search').exists()).toBe(false)
+    await openSearch(wrapper, 'apple')
+    expect(wrapper.findAll('.fullscreen-notes mark')).toHaveLength(2)
+    expect(wrapper.get('.fullscreen-search-count').text()).toBe('1 of 2')
+    expect(wrapper.findAll('mark.current')).toHaveLength(1)
+  })
+
+  it('steps forward on Enter and backward on Shift+Enter, wrapping around', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'x y x y x' }) })
+    const input = await openSearch(wrapper, 'x')
+    await input.trigger('keydown', { key: 'Enter' })
+    expect(wrapper.get('.fullscreen-search-count').text()).toBe('2 of 3')
+    await input.trigger('keydown', { key: 'Enter', shiftKey: true })
+    await input.trigger('keydown', { key: 'Enter', shiftKey: true })
+    expect(wrapper.get('.fullscreen-search-count').text()).toBe('3 of 3')
+  })
+
+  it('shows no results for a query that does not match', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'text' }) })
+    await openSearch(wrapper, 'zzz')
+    expect(wrapper.get('.fullscreen-search-count').text()).toBe('0 of 0')
+  })
+
+  it('closes the search box on the first Escape and the overlay on the second', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'apple' }) })
+    await openSearch(wrapper, 'apple')
+    press('Escape')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.fullscreen-search').exists()).toBe(false)
+    expect(wrapper.find('.fullscreen-notes mark').exists()).toBe(false)
+    expect(wrapper.emitted('close')).toBeUndefined()
+    press('Escape')
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('leaves Cmd+F to the notes editor while it is open', async () => {
+    const wrapper = mountOverlay({ todo: makeTodo({ notes: 'note' }) })
+    await wrapper.get('.fullscreen-notes .markdown-body').trigger('dblclick')
+    pressFind()
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.fullscreen-search').exists()).toBe(false)
+  })
+})

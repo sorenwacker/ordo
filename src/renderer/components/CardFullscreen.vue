@@ -27,6 +27,16 @@
           Due: {{ formatDeadline(todo.end_date) }}
         </span>
       </div>
+      <div v-if="isSearching" class="fullscreen-search">
+        <input
+          ref="searchInput"
+          v-model="searchQuery"
+          class="fullscreen-search-input"
+          placeholder="Find in notes"
+          @keydown.enter.prevent="stepMatch($event.shiftKey ? -1 : 1)"
+        />
+        <span class="fullscreen-search-count">{{ searchCounter }}</span>
+      </div>
       <div class="fullscreen-notes">
         <NotesEditor
           v-if="isEditingNotes"
@@ -41,7 +51,7 @@
             <span class="sensitive-icon-small">L</span>
             <span class="sensitive-text">Sensitive content hidden</span>
           </div>
-          <div v-else-if="todo.notes" v-html="renderCardNotes(todo.notes)"></div>
+          <div v-else-if="todo.notes" ref="renderedNotes" v-html="renderCardNotes(todo.notes)"></div>
           <div v-else class="add-notes-link" @click="startNotesEdit">+ Add notes</div>
         </div>
       </div>
@@ -53,6 +63,7 @@
   import NotesEditor from './NotesEditor.vue'
   import { X } from 'lucide-vue-next'
   import cardInteractionsMixin from './cardInteractionsMixin.js'
+  import { highlightMatches, clearHighlights } from '../utils/highlightMatches.js'
 
   /**
    * A todo opened over the whole window. Title and notes edit in place through
@@ -73,6 +84,31 @@
       }
     },
     emits: ['close', 'update-title', 'update-notes'],
+    data() {
+      return {
+        isSearching: false,
+        searchQuery: '',
+        matches: [],
+        currentMatch: -1
+      }
+    },
+    computed: {
+      searchCounter() {
+        return `${this.matches.length ? this.currentMatch + 1 : 0} of ${this.matches.length}`
+      }
+    },
+    watch: {
+      searchQuery() {
+        this.refreshMatches()
+      },
+      // A re-render of the notes replaces the highlighted nodes.
+      'todo.notes'() {
+        if (this.isSearching) this.$nextTick(this.refreshMatches)
+      },
+      isEditingNotes(editing) {
+        if (!editing && this.isSearching) this.$nextTick(this.refreshMatches)
+      }
+    },
     mounted() {
       // Capture phase, so Escape is consumed here before the application's own
       // window listener can act on it.
@@ -83,6 +119,14 @@
     },
     methods: {
       onKeyDown(event) {
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
+          // The notes editor has CodeMirror's own search.
+          if (this.isEditingNotes) return
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          this.openSearch()
+          return
+        }
         if (event.key !== 'Escape') return
         event.preventDefault()
         event.stopImmediatePropagation()
@@ -95,7 +139,41 @@
           this.saveNotes()
           return
         }
+        if (this.isSearching) {
+          this.closeSearch()
+          return
+        }
         this.$emit('close')
+      },
+      openSearch() {
+        this.isSearching = true
+        this.$nextTick(() => {
+          this.$refs.searchInput?.focus()
+          this.$refs.searchInput?.select()
+        })
+      },
+      closeSearch() {
+        this.isSearching = false
+        this.searchQuery = ''
+        if (this.$refs.renderedNotes) clearHighlights(this.$refs.renderedNotes)
+        this.matches = []
+        this.currentMatch = -1
+      },
+      refreshMatches() {
+        const root = this.$refs.renderedNotes
+        this.matches = root ? highlightMatches(root, this.searchQuery) : []
+        this.currentMatch = this.matches.length ? 0 : -1
+        this.showCurrentMatch()
+      },
+      stepMatch(direction) {
+        if (!this.matches.length) return
+        const count = this.matches.length
+        this.currentMatch = (this.currentMatch + direction + count) % count
+        this.showCurrentMatch()
+      },
+      showCurrentMatch() {
+        this.matches.forEach((mark, i) => mark.classList.toggle('current', i === this.currentMatch))
+        this.matches[this.currentMatch]?.scrollIntoView?.({ block: 'center' })
       },
       openNotesEditor() {
         // The overlay is for reading, so notes open on a double-click. That
