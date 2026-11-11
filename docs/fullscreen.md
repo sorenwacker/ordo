@@ -12,6 +12,12 @@ The overlay is read from the live todo, so a change saved in it is visible on th
 
 The title and the notes edit in place as on a card (see [Inline editing](editing.md)), with one difference: the overlay is where notes are read, so its rendered notes open the editor on a double-click, not on the single click a card uses. A single click or a drag that selects text leaves the notes as they are. The double-click selects the word under the pointer, so the overlay clears that selection before opening the editor; otherwise the selection guard shared with the cards would block the edit. The `+ Add notes` placeholder of a todo without notes opens the editor on a single click, since there is nothing to read or select. A double-click on the title opens the rename box, and leaving either editor saves. The notes editor fills the overlay body. Edits go through the same `update-title` and `update-notes` path as the card's own edits, so undo, history, and the other windows see them the same way.
 
+## Searching
+
+Cmd/Ctrl+F in the overlay opens a search box at the top of the notes. Matches in the rendered notes are highlighted as you type (case-insensitive), the current match is scrolled into view, Enter and Shift+Enter step to the next and previous match, and a counter shows "n of m". Escape closes the search box first, then the overlay, the same two-step pattern as the editor. While the notes editor is open, Cmd/Ctrl+F is left to CodeMirror's own search. Sensitive notes are not rendered and therefore not searched.
+
+Highlighting wraps matching text in `<mark>` elements inside the rendered text nodes, so the markup of the notes is never rewritten as a string. The text-node walk lives in `src/renderer/utils/highlightMatches.js`.
+
 ## Closing
 
 The overlay closes on the close button, on a click on the backdrop outside the content, and on Escape. Closing saves an open editor first, so nothing typed is lost.
@@ -29,4 +35,5 @@ The button is a third icon button in the kanban card header, which raised the fi
 ## Gates
 
 - `tests/CardFullscreen.test.js` covers the rendering, the editing hand-off, each way of closing, the two-step Escape, and that Escape does not propagate to other window listeners. It also checks that the application mounts the overlay and that both views forward the card's `open-fullscreen` event, since that wiring is what makes the button reachable.
+- `tests/highlightMatches.test.js` covers the text-node highlighting; `tests/CardFullscreen.test.js` covers opening the search with Cmd/Ctrl+F, the counter, stepping, the two-step Escape, and that the shortcut is left alone while the notes editor is open.
 - `tests/CardItem.test.js` and `tests/KanbanCard.test.js` check that the button emits `open-fullscreen` without selecting or toggling the card.

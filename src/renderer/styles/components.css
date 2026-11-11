@@ -626,3 +626,35 @@
   flex: 1;
   min-height: 0;
 }
+
+.fullscreen-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fullscreen-search-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  color: inherit;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.fullscreen-search-count {
+  color: #888;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fullscreen-notes mark[data-search-match] {
+  background: rgba(255, 200, 0, 0.35);
+  color: inherit;
+  border-radius: 2px;
+}
+
+.fullscreen-notes mark[data-search-match].current {
+  background: rgba(255, 150, 0, 0.8);
+}
