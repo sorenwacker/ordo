@@ -64,7 +64,7 @@ connection open, so its writes went unnoticed until the app was restarted.
 | `list_todos` | Todos with optional filters: `project` (name or id), `status` (name), `include_completed` (default false). |
 | `add_todo` | Create a todo: `title` (required), `project` (name or id), `notes`, `start_date` (defaults to today), `end_date`, `importance` (1-5), `status` (name), `type` (`todo`/`note`/`milestone`). |
 | `update_todo` | Update fields of a todo by `id`: `title`, `notes`, `start_date`, `end_date`, `importance`, `status`, `project`. |
-| `complete_todo` | Set a todo's completed state by `id` (`completed` defaults to true). |
+| `complete_todo` | Set a todo's completed state by `id` (`completed` defaults to true). Runs the app's own completion transition in one transaction: due date, Done column and the next occurrence of a recurring todo (see [Kanban view](kanban.md#the-done-column)). |
 | `search_todos` | Full-text search over titles, notes, projects, and tags. |
 
 Rules enforced by the server, matching the app: titles are required,

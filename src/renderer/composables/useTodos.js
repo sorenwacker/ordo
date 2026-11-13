@@ -4,8 +4,6 @@
  */
 
 import { reactive, computed, toRefs } from 'vue'
-import { statusForCompletion, completionForStatus } from '../utils/doneStatus.js'
-import { formatLocalDate } from '../utils/dueDates.js'
 
 /**
  * Reactive todos state (private).
@@ -143,73 +141,28 @@ async function deleteTodo(id) {
 }
 
 /**
- * Write a completion change into plain todo data.
- * Auto-sets end_date when completing if not already set. Un-completing leaves
- * end_date alone.
- * @param {Object} todoData - Plain todo data, mutated in place
- * @param {boolean} isCompleting - Whether the todo becomes completed
- */
-function applyCompletion(todoData, isCompleting) {
-  todoData.completed = isCompleting
-  if (isCompleting && !todoData.end_date) {
-    todoData.end_date = formatLocalDate(new Date())
-  }
-}
-
-/**
- * Toggle todo completion status.
- * Auto-sets end_date when completing if not already set.
- * Creates next recurrence for recurring tasks.
- * Moves the todo into or out of the "Done" status column when one exists.
+ * Toggle todo completion status. The database applies the whole transition in
+ * one transaction: the due date a completion sets, the move into or out of the
+ * "Done" column, and the next occurrence of a recurring todo
+ * (docs/kanban.md, "The Done column").
  * @param {Object} todo - The todo to toggle
- * @param {Array<Object>} statuses - Status rows, to locate the "Done" column
  */
-async function toggleComplete(todo, statuses = []) {
-  const todoData = toPlainTodo(todo)
-  const isCompleting = !todo.completed
-  applyCompletion(todoData, isCompleting)
-  todoData.status_id = statusForCompletion(todoData.status_id, isCompleting, statuses)
-
-  await window.api.updateTodo(todoData)
-
-  // If completing a recurring task, create the next occurrence
-  if (isCompleting && todo.recurrence_type) {
-    await window.api.createNextRecurrence(todo.id)
-  }
-
+async function toggleComplete(todo) {
+  await window.api.setTodoCompleted(todo.id, !todo.completed)
   await loadAllTodos()
   await loadTodos(state._currentFilter)
 }
 
 /**
- * Move a todo to another kanban cell.
- * Ticks the completion checkbox when the todo lands in the "Done" column and
- * unticks it when the todo leaves that column, running the same completion
- * transition as toggleComplete.
+ * Move a todo to another kanban cell. Landing in the "Done" column completes
+ * it and leaving that column reopens it, by the same transition as
+ * toggleComplete; the database does both in one transaction.
  * @param {Object} todo - The todo to move
  * @param {Object} target - Destination: `statusId`, and `projectId` when the
  *   move crosses project sections
- * @param {Array<Object>} statuses - Status rows, to locate the "Done" column
  */
-async function moveTodoTo(todo, { statusId, projectId }, statuses = []) {
-  const todoData = toPlainTodo(todo)
-  const wasCompleted = Boolean(todo.completed)
-  const isCompleting = completionForStatus(todo.status_id, statusId, wasCompleted, statuses)
-
-  todoData.status_id = statusId
-  if (projectId !== undefined) {
-    todoData.project_id = projectId
-  }
-  if (isCompleting !== wasCompleted) {
-    applyCompletion(todoData, isCompleting)
-  }
-
-  await window.api.updateTodo(todoData)
-
-  if (isCompleting && !wasCompleted && todo.recurrence_type) {
-    await window.api.createNextRecurrence(todo.id)
-  }
-
+async function moveTodoTo(todo, { statusId, projectId }) {
+  await window.api.moveTodo(todo.id, { statusId, projectId })
   await loadAllTodos()
   await loadTodos(state._currentFilter)
 }
