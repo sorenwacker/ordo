@@ -86,15 +86,11 @@ describe('KanbanView drop zones', () => {
 })
 
 describe('onStackedKanbanDrop', () => {
-  let updateTodo
+  let moveTodo
 
   beforeEach(() => {
-    updateTodo = vi.fn().mockResolvedValue(undefined)
-    window.api = {
-      updateTodo,
-      getTodos: vi.fn().mockResolvedValue([]),
-      createNextRecurrence: vi.fn().mockResolvedValue(undefined)
-    }
+    moveTodo = vi.fn().mockResolvedValue(undefined)
+    window.api = { moveTodo, getTodos: vi.fn().mockResolvedValue([]) }
   })
 
   it('moves the card to the status of the column it was dropped into', async () => {
@@ -103,7 +99,7 @@ describe('onStackedKanbanDrop', () => {
 
     await host.onStackedKanbanDrop(endEvent(todo, { projectId: '5', statusId: '20' }))
 
-    expect(updateTodo).toHaveBeenCalledWith(expect.objectContaining({ id: 1, status_id: 20 }))
+    expect(moveTodo).toHaveBeenCalledWith(1, { statusId: 20, projectId: 5 })
   })
 
   it('clears the status when dropped into the No Status column', async () => {
@@ -112,7 +108,7 @@ describe('onStackedKanbanDrop', () => {
 
     await host.onStackedKanbanDrop(endEvent(todo, { projectId: '5', statusId: '' }))
 
-    expect(updateTodo).toHaveBeenCalledWith(expect.objectContaining({ id: 1, status_id: null }))
+    expect(moveTodo).toHaveBeenCalledWith(1, { statusId: null, projectId: 5 })
   })
 
   it('moves the card to the project section it was dropped into', async () => {
@@ -121,9 +117,7 @@ describe('onStackedKanbanDrop', () => {
 
     await host.onStackedKanbanDrop(endEvent(todo, { projectId: '7', statusId: '20' }))
 
-    expect(updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, project_id: 7, status_id: 20 })
-    )
+    expect(moveTodo).toHaveBeenCalledWith(1, { statusId: 20, projectId: 7 })
   })
 
   it('clears the project when dropped into the Inbox section', async () => {
@@ -132,7 +126,7 @@ describe('onStackedKanbanDrop', () => {
 
     await host.onStackedKanbanDrop(endEvent(todo, { projectId: '', statusId: '10' }))
 
-    expect(updateTodo).toHaveBeenCalledWith(expect.objectContaining({ id: 1, project_id: null }))
+    expect(moveTodo).toHaveBeenCalledWith(1, { statusId: 10, projectId: null })
   })
 
   it('ignores an event with no draggable context', async () => {
@@ -140,67 +134,53 @@ describe('onStackedKanbanDrop', () => {
 
     await host.onStackedKanbanDrop({ item: document.createElement('div'), to: null })
 
-    expect(updateTodo).not.toHaveBeenCalled()
+    expect(moveTodo).not.toHaveBeenCalled()
   })
 })
 
+// Which column completes or reopens a card is decided by the database, in the
+// same transaction as the move (tests/completion.test.js). The board only
+// names the destination; a drop on the status board sends no project.
 describe('the Done column and the completion checkbox', () => {
-  let updateTodo
+  let api
 
   beforeEach(() => {
-    updateTodo = vi.fn().mockResolvedValue(undefined)
-    window.api = {
-      updateTodo,
-      getTodos: vi.fn().mockResolvedValue([]),
-      createNextRecurrence: vi.fn().mockResolvedValue(undefined)
+    api = {
+      moveTodo: vi.fn().mockResolvedValue(undefined),
+      setTodoCompleted: vi.fn().mockResolvedValue(undefined),
+      getTodos: vi.fn().mockResolvedValue([])
     }
+    window.api = api
   })
 
-  it('ticks the box when a card is dropped into the Done column', async () => {
+  it('sends a drop into the Done column as a move to that column', async () => {
     const todo = makeTodo({ status_id: 10, completed: false })
     const host = makeHost([todo], STATUSES_WITH_DONE)
 
     await host.onKanbanDropStatus(endEvent(todo, { statusId: '30' }))
 
-    expect(updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, status_id: 30, completed: true })
-    )
+    expect(api.moveTodo).toHaveBeenCalledWith(1, { statusId: 30, projectId: undefined })
   })
 
-  it('unticks the box when a card is dragged out of the Done column', async () => {
+  it('sends a drag out of the Done column as a move to No Status', async () => {
     const todo = makeTodo({ status_id: 30, completed: true })
     const host = makeHost([todo], STATUSES_WITH_DONE)
 
     await host.onKanbanDropStatus(endEvent(todo, { statusId: '' }))
 
-    expect(updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, status_id: null, completed: false })
-    )
+    expect(api.moveTodo).toHaveBeenCalledWith(1, { statusId: null, projectId: undefined })
   })
 
-  it('ticks the box on the grouped board too', async () => {
-    const todo = makeTodo({ project_id: 5, status_id: 10, completed: false })
+  it('does not move a card dropped back into its own column', async () => {
+    const todo = makeTodo({ status_id: 10 })
     const host = makeHost([todo], STATUSES_WITH_DONE)
 
-    await host.onStackedKanbanDrop(endEvent(todo, { projectId: '7', statusId: '30' }))
+    await host.onKanbanDropStatus(endEvent(todo, { statusId: '10' }))
 
-    expect(updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, project_id: 7, status_id: 30, completed: true })
-    )
+    expect(api.moveTodo).not.toHaveBeenCalled()
   })
 
-  it('leaves the box alone when no status is named Done', async () => {
-    const todo = makeTodo({ status_id: 10, completed: false })
-    const host = makeHost([todo])
-
-    await host.onKanbanDropStatus(endEvent(todo, { statusId: '20' }))
-
-    expect(updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, status_id: 20, completed: false })
-    )
-  })
-
-  it('moves a ticked card into the Done column from the checkbox', async () => {
+  it('completes a card from the checkbox through the database', async () => {
     const todo = makeTodo({ status_id: 10, completed: false })
     const host = {
       ...makeHost([todo], STATUSES_WITH_DONE),
@@ -209,9 +189,7 @@ describe('the Done column and the completion checkbox', () => {
 
     await host.toggleComplete(todo)
 
-    expect(updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, status_id: 30, completed: true })
-    )
+    expect(api.setTodoCompleted).toHaveBeenCalledWith(1, true)
   })
 })
 

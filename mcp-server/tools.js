@@ -1,5 +1,4 @@
 import { MAX_LENGTH } from '../src/config/constants.js'
-import { statusForCompletion } from '../src/renderer/utils/doneStatus.js'
 import { formatLocalDate } from '../src/renderer/utils/dueDates.js'
 
 const TODO_TYPES = ['todo', 'note', 'milestone']
@@ -208,24 +207,10 @@ export function createTools(db) {
         required: ['id']
       },
       handler: ({ id, completed = true } = {}) => {
-        // Same transition as completing in the app: set end_date, move into or
-        // out of the Done column, and spawn the next recurrence.
-        const existing = getExistingTodo(id)
-        const wasCompleted = Boolean(existing.completed)
-        const updates = { ...existing, completed: completed ? 1 : 0 }
-        if (completed !== wasCompleted) {
-          if (completed && !updates.end_date) updates.end_date = formatLocalDate(new Date())
-          updates.status_id = statusForCompletion(
-            existing.status_id ?? null,
-            completed,
-            db.getAllStatuses()
-          )
-        }
-        db.updateTodo(updates)
-        if (completed && !wasCompleted && existing.recurrence_type) {
-          db.createNextRecurrence(id)
-        }
-        return trimTodo(db.getTodo(id))
+        getExistingTodo(id)
+        // The one completion transition, shared with the app's checkbox and
+        // board: due date, Done column and next occurrence, in one transaction
+        return trimTodo(db.setCompleted(id, Boolean(completed)).todo)
       }
     },
     {

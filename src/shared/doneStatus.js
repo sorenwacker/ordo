@@ -4,6 +4,11 @@
  * The board has no flag marking a column as the completion column; the name is
  * the whole contract. When no status is named "Done", every function here is a
  * no-op and the checkbox and the columns stay independent.
+ *
+ * These are the pure rules. The writes that apply them live in one place,
+ * `Database.setCompleted` and `Database.moveTodo` (src/main/database.js), which
+ * the checkbox, the board and the MCP server all call; the renderer only uses
+ * the rules to decide what to show (docs/kanban.md, "The Done column").
  */
 
 const DONE_STATUS_NAME = 'done'

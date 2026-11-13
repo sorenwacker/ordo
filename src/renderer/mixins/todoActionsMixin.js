@@ -8,9 +8,6 @@
  * and `trashCount` state, and `showDbError` for reporting failed writes.
  */
 
-import { completionForStatus } from '../utils/doneStatus.js'
-import { formatLocalDate } from '../utils/dueDates.js'
-
 /**
  * Reads a project or status id off a kanban drop zone's data attribute.
  *
@@ -59,7 +56,7 @@ export default {
 
       const todo = this.allTodos.find((t) => t.id === todoId)
       if (todo && todo.status_id !== parsedStatusId) {
-        await this.todosComposable.moveTodoTo(todo, { statusId: parsedStatusId }, this.statuses)
+        await this.todosComposable.moveTodoTo(todo, { statusId: parsedStatusId })
       }
     },
     async onStackedKanbanDrop(event) {
@@ -74,7 +71,7 @@ export default {
 
       const todo = this.allTodos.find((t) => t.id === todoId)
       if (todo) {
-        await this.todosComposable.moveTodoTo(todo, { statusId, projectId }, this.statuses)
+        await this.todosComposable.moveTodoTo(todo, { statusId, projectId })
       }
     },
     async addTodo() {
@@ -109,14 +106,8 @@ export default {
         const type = 'todo'
         const todo = await window.api.createTodo('Untitled', projectId, type)
         if (statusId !== null) {
-          const todoData = this.toPlainTodo(todo)
-          todoData.status_id = statusId
-          // A todo created in the Done column starts completed, as one moved there would.
-          if (completionForStatus(null, statusId, false, this.statuses)) {
-            todoData.completed = true
-            todoData.end_date = todoData.end_date || formatLocalDate(new Date())
-          }
-          await window.api.updateTodo(todoData)
+          // Placed by the same move as a drop: in the Done column it starts completed
+          await window.api.moveTodo(todo.id, { statusId })
         }
         await this.loadAllTodos()
         await this.loadTodos()
@@ -138,7 +129,7 @@ export default {
       await this.loadTodos()
     },
     async toggleComplete(todo) {
-      await this.todosComposable.toggleComplete(todo, this.statuses)
+      await this.todosComposable.toggleComplete(todo)
       // Sync to project composable for counts
       this.projectsComposable.setAllTodos(this.allTodos)
     },
