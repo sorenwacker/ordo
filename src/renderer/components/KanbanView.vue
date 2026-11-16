@@ -183,7 +183,7 @@
   import draggable from 'vuedraggable'
   import KanbanCard from './KanbanCard.vue'
   import { isCanvasMouseDown } from '../utils/canvas.js'
-  import { findDoneStatus } from '../utils/doneStatus.js'
+  import { findDoneStatus } from '../../shared/doneStatus.js'
 
   export default {
     name: 'KanbanView',

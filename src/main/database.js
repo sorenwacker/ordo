@@ -8,6 +8,7 @@ import { existsSync, mkdirSync, renameSync, copyFileSync } from 'fs'
 import log from './logger.js'
 import { createTables, runMigrations, verifySchema, SCHEMA_VERSION } from './schema.js'
 import { exportData, importData } from './importExport.js'
+import { statusForCompletion, completionForStatus } from '../shared/doneStatus.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -453,7 +454,15 @@ export class Database {
 
   // Create next recurring todo instance when completing a recurring task
   createNextRecurrence(todoId) {
-    const todo = this.getTodo(todoId)
+    return this._nextRecurrenceFrom(this.getTodo(todoId))
+  }
+
+  /**
+   * Create the next occurrence from the given state of a recurring todo. The
+   * completion transition passes the row as it was before completing, so the
+   * next occurrence starts in the column the todo was in, not in Done.
+   */
+  _nextRecurrenceFrom(todo) {
     if (!todo || !todo.recurrence_type) return null
 
     // Calculate next due date. Dates are calendar days (YYYY-MM-DD), so all
@@ -508,6 +517,83 @@ export class Database {
       )
 
     return this.getTodo(result.lastInsertRowid)
+  }
+
+  /**
+   * Complete or reopen a todo, as one transaction: the completed flag, the due
+   * date a completion sets, the move into or out of the "Done" column, and the
+   * next occurrence of a recurring todo land together or not at all
+   * (docs/kanban.md, "The Done column"). Every writer goes through here or
+   * through moveTodo: the checkbox, a drop on the board and the MCP server.
+   *
+   * @param {number} id - Todo id
+   * @param {boolean} completed - The state to set
+   * @returns {{todo: Object|null, next: Object|null}} The todo as written, and
+   *   the next occurrence created, if any; `todo` is null for an unknown id
+   */
+  setCompleted(id, completed) {
+    return this.db.transaction(() => {
+      const existing = this.getTodo(id)
+      if (!existing) return { todo: null, next: null }
+      return this._applyCompletion(existing, Boolean(completed), {})
+    })()
+  }
+
+  /**
+   * Move a todo to another kanban cell, as one transaction. Landing in the
+   * "Done" column completes it and leaving that column reopens it, with the
+   * same transition as setCompleted; a move between two other columns leaves
+   * the completion alone.
+   *
+   * @param {number} id - Todo id
+   * @param {Object} target
+   * @param {number|null} target.statusId - Destination status, null for "No Status"
+   * @param {number|null} [target.projectId] - Destination project when the move
+   *   crosses project sections; omitted leaves the project alone
+   * @returns {{todo: Object|null, next: Object|null}} As setCompleted
+   */
+  moveTodo(id, { statusId = null, projectId } = {}) {
+    return this.db.transaction(() => {
+      const existing = this.getTodo(id)
+      if (!existing) return { todo: null, next: null }
+      const completed = completionForStatus(
+        existing.status_id,
+        statusId,
+        Boolean(existing.completed),
+        this.getAllStatuses()
+      )
+      const changes = { status_id: statusId }
+      if (projectId !== undefined) changes.project_id = projectId
+      return this._applyCompletion(existing, completed, changes)
+    })()
+  }
+
+  /**
+   * The body shared by setCompleted and moveTodo; runs inside their
+   * transaction. `changes` are the column and project a move sets; when the
+   * column is not among them, a completion change picks it by the Done rule.
+   */
+  _applyCompletion(existing, completed, changes) {
+    const wasCompleted = Boolean(existing.completed)
+    const updates = { ...existing, ...changes, completed: completed ? 1 : 0 }
+    if (completed !== wasCompleted) {
+      if (completed && !updates.end_date) updates.end_date = localDateString(new Date())
+      if (!('status_id' in changes)) {
+        updates.status_id = statusForCompletion(
+          existing.status_id ?? null,
+          completed,
+          this.getAllStatuses()
+        )
+      }
+    }
+    const todo = this.updateTodo(updates)
+    // From the row as it was: the next occurrence keeps the column and dates
+    // the todo had before it was completed and moved to Done
+    const next =
+      completed && !wasCompleted && existing.recurrence_type
+        ? this._nextRecurrenceFrom(existing)
+        : null
+    return { todo, next }
   }
 
   deleteTodo(id) {

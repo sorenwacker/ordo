@@ -172,9 +172,11 @@ src/
 │   ├── externalChanges.js # Reload the UI after another process commits
 │   ├── updater.js      # Auto-update behavior
 │   ├── logger.js       # Main-process logging
-│   └── history.js      # Undo/redo state management
+│   ├── history.js      # Undo/redo state management
+│   └── completionHistory.js # Undo/redo of a completion, with its next occurrence
 ├── preload/       # Preload scripts (IPC bridge)
 ├── renderer/      # Vue application
+├── shared/        # Rules used by main and renderer (the "Done" column)
 └── config/        # Shared constants
 mcp-server/        # Standalone MCP server (own node_modules)
 docs/              # Documentation

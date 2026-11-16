@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('api', {
   createTodo: (title, projectId, type = 'todo') =>
     ipcRenderer.invoke('create-todo', title, projectId, type),
   updateTodo: (todo, options) => ipcRenderer.invoke('update-todo', todo, options),
+  setTodoCompleted: (id, completed) => ipcRenderer.invoke('set-todo-completed', id, completed),
+  moveTodo: (id, target) => ipcRenderer.invoke('move-todo', id, target),
   deleteTodo: (id) => ipcRenderer.invoke('delete-todo', id),
   restoreTodo: (id) => ipcRenderer.invoke('restore-todo', id),
   permanentlyDeleteTodo: (id) => ipcRenderer.invoke('permanently-delete-todo', id),
@@ -59,7 +61,6 @@ contextBridge.exposeInMainWorld('api', {
   globalSearch: (query) => ipcRenderer.invoke('global-search', query),
 
   // Recurrence operations
-  createNextRecurrence: (todoId) => ipcRenderer.invoke('create-next-recurrence', todoId),
 
   // Export/Import operations
   exportData: () => ipcRenderer.invoke('export-data'),

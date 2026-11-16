@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file. Versions correspond to git tags and GitHub releases; dates use YYMMDD format. Version bumps that were never tagged (0.1.0, 0.3.0-0.3.7, 0.4.x, 0.5.0) are folded into the release that shipped them.
 
+## Unreleased
+
+### Fixed
+
+- Completing a todo is one database transaction. The completed flag, the due date a completion sets, the move into or out of the Done column and the next occurrence of a recurring todo were applied by three separate copies of the same logic (the checkbox, a drop on the board, and the MCP server), and the app wrote them in two calls, so a failure between the calls could complete a recurring todo without creating its next one. One `Database.setCompleted` / `Database.moveTodo` now does all of it, for every writer. Undoing a completion also removes the occurrence it created. See [Kanban view](docs/kanban.md#the-done-column).
+
 ## 0.9.2 - 261023
 
 ### Fixed

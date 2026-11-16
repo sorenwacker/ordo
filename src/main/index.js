@@ -8,6 +8,7 @@ import logger from './logger.js'
 import { initAutoUpdater } from './updater.js'
 import { startExternalChangeWatcher } from './externalChanges.js'
 import history from './history.js'
+import { completionAction } from './completionHistory.js'
 import {
   MAX_LENGTH,
   MAX_IMPORT_FILE_SIZE,
@@ -17,6 +18,7 @@ import {
   ValidationError,
   validateId,
   validateOptionalId,
+  validateBoolean,
   validateString,
   validateOptionalString,
   validateOptionalColor,
@@ -373,6 +375,55 @@ app.whenReady().then(() => {
       return todo
     })
   )
+  // Completing, reopening and moving a todo between kanban cells run as one
+  // transaction in the database (docs/kanban.md, "The Done column"); undoing
+  // one also removes the next occurrence it may have created.
+  function recordTransition(oldTodo, result, redo, description) {
+    const action = completionAction(database, oldTodo, result, redo, description)
+    if (!action) return
+    history.push(action)
+    if (mainWindow) {
+      mainWindow.webContents.send('history-changed', history.getState())
+    }
+  }
+
+  ipcMain.handle(
+    'set-todo-completed',
+    handleWithValidation((_, id, completed) => {
+      const validId = validateId(id)
+      const value = validateBoolean(completed, 'completed')
+      const oldTodo = database.getTodo(validId)
+      const result = database.setCompleted(validId, value)
+      recordTransition(
+        oldTodo,
+        result,
+        () => database.setCompleted(validId, value),
+        `${value ? 'Complete' : 'Reopen'} "${result.todo?.title}"`
+      )
+      return result.todo
+    }, 'set-todo-completed')
+  )
+
+  ipcMain.handle(
+    'move-todo',
+    handleWithValidation((_, id, target = {}) => {
+      const validId = validateId(id)
+      const move = { statusId: validateOptionalId(target?.statusId, 'statusId') }
+      if (target?.projectId !== undefined) {
+        move.projectId = validateOptionalId(target.projectId, 'projectId')
+      }
+      const oldTodo = database.getTodo(validId)
+      const result = database.moveTodo(validId, move)
+      recordTransition(
+        oldTodo,
+        result,
+        () => database.moveTodo(validId, move),
+        `Move "${result.todo?.title}"`
+      )
+      return result.todo
+    }, 'move-todo')
+  )
+
   ipcMain.handle(
     'update-todo',
     handleWithValidation((_, todo, options = {}) => {
@@ -607,14 +658,6 @@ app.whenReady().then(() => {
     'global-search',
     handleWithValidation((_, query) => {
       return database.globalSearch(validateSearchQuery(query))
-    })
-  )
-
-  // Recurrence handler
-  ipcMain.handle(
-    'create-next-recurrence',
-    handleWithValidation((_, todoId) => {
-      return database.createNextRecurrence(validateId(todoId))
     })
   )
 

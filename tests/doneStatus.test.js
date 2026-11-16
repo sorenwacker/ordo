@@ -4,7 +4,7 @@ import {
   findDoneStatus,
   statusForCompletion,
   completionForStatus
-} from '../src/renderer/utils/doneStatus.js'
+} from '../src/shared/doneStatus.js'
 import { useTodos } from '../src/renderer/composables/useTodos.js'
 
 const WITH_DONE = [
@@ -74,7 +74,7 @@ describe('completionForStatus', () => {
   })
 })
 
-describe('useTodos completion and status sync', () => {
+describe('useTodos completion and moves', () => {
   let api
   let todos
 
@@ -84,85 +84,32 @@ describe('useTodos completion and status sync', () => {
 
   beforeEach(() => {
     api = {
-      updateTodo: vi.fn().mockResolvedValue(undefined),
-      getTodos: vi.fn().mockResolvedValue([]),
-      createNextRecurrence: vi.fn().mockResolvedValue(undefined)
+      setTodoCompleted: vi.fn().mockResolvedValue(undefined),
+      moveTodo: vi.fn().mockResolvedValue(undefined),
+      getTodos: vi.fn().mockResolvedValue([])
     }
     window.api = api
     todos = useTodos()
   })
 
-  it('moves a card into the Done column when its box is ticked', async () => {
-    await todos.toggleComplete(makeTodo(), WITH_DONE)
+  // The transition itself (due date, Done column, next occurrence) is the
+  // database's, in one transaction (tests/completion.test.js); the composable
+  // only says which todo and which state.
+  it('asks the database to complete an open card and to reopen a done one', async () => {
+    await todos.toggleComplete(makeTodo())
+    expect(api.setTodoCompleted).toHaveBeenCalledWith(1, true)
 
-    expect(api.updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, completed: true, status_id: 30 })
-    )
+    await todos.toggleComplete(makeTodo({ completed: true }))
+    expect(api.setTodoCompleted).toHaveBeenCalledWith(1, false)
   })
 
-  it('moves a ticked-off card out of the Done column to No Status', async () => {
-    await todos.toggleComplete(makeTodo({ completed: true, status_id: 30 }), WITH_DONE)
-
-    expect(api.updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 1, completed: false, status_id: null })
-    )
+  it('asks the database to move a card to a column', async () => {
+    await todos.moveTodoTo(makeTodo(), { statusId: 30 })
+    expect(api.moveTodo).toHaveBeenCalledWith(1, { statusId: 30, projectId: undefined })
   })
 
-  it('keeps the column when no status is named Done', async () => {
-    await todos.toggleComplete(makeTodo(), WITHOUT_DONE)
-
-    expect(api.updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ completed: true, status_id: 10 })
-    )
-  })
-
-  it('ticks the box when a card is moved into the Done column', async () => {
-    await todos.moveTodoTo(makeTodo(), { statusId: 30 }, WITH_DONE)
-
-    expect(api.updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ status_id: 30, completed: true })
-    )
-  })
-
-  it('sets a due date when a move into Done completes an undated card', async () => {
-    await todos.moveTodoTo(makeTodo(), { statusId: 30 }, WITH_DONE)
-
-    const written = api.updateTodo.mock.calls[0][0]
-    expect(written.end_date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-  })
-
-  it('creates the next occurrence when a move into Done completes a recurring card', async () => {
-    await todos.moveTodoTo(makeTodo({ recurrence_type: 'daily' }), { statusId: 30 }, WITH_DONE)
-
-    expect(api.createNextRecurrence).toHaveBeenCalledWith(1)
-  })
-
-  it('unticks the box when a card is moved out of the Done column', async () => {
-    await todos.moveTodoTo(
-      makeTodo({ completed: true, status_id: 30, end_date: '2026-08-01' }),
-      { statusId: 10 },
-      WITH_DONE
-    )
-
-    expect(api.updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ status_id: 10, completed: false, end_date: '2026-08-01' })
-    )
-  })
-
-  it('leaves completion alone on a move between two other columns', async () => {
-    await todos.moveTodoTo(makeTodo({ completed: true }), { statusId: 20 }, WITH_DONE)
-
-    expect(api.updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ status_id: 20, completed: true })
-    )
-    expect(api.createNextRecurrence).not.toHaveBeenCalled()
-  })
-
-  it('writes the project alongside the status when one is given', async () => {
-    await todos.moveTodoTo(makeTodo({ project_id: 5 }), { statusId: 20, projectId: 7 }, WITH_DONE)
-
-    expect(api.updateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ project_id: 7, status_id: 20 })
-    )
+  it('passes the project along when the move crosses project sections', async () => {
+    await todos.moveTodoTo(makeTodo({ project_id: 5 }), { statusId: 20, projectId: 7 })
+    expect(api.moveTodo).toHaveBeenCalledWith(1, { statusId: 20, projectId: 7 })
   })
 })
