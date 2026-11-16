@@ -56,6 +56,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # The app is ad-hoc signed by electron-builder (build.mac.identity "-");
+      # an invalid or missing signature does not start on Apple silicon.
+      - name: Verify macOS signature
+        if: runner.os == 'macOS'
+        run: |
+          codesign --verify --deep --strict --verbose=2 dist/mac*/*.app
+          codesign --display --verbose=2 dist/mac*/*.app 2>&1 | grep -q 'Signature=adhoc'
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -95,7 +95,8 @@
         "zip"
       ],
       "category": "public.app-category.productivity",
-      "identity": null
+      "identity": "-",
+      "hardenedRuntime": false
     },
     "dmg": {
       "contents": [
@@ -115,7 +116,6 @@
         "height": 400
       }
     },
-    "afterSign": "scripts/afterSign.cjs",
     "win": {
       "icon": "resources/icon-256.png",
       "target": [
