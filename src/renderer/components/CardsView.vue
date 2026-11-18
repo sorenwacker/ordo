@@ -35,6 +35,7 @@
           >
             <template #item="{ element }">
               <CardItem
+                v-masonry-item
                 :todo="element"
                 :selected="selectedTodoId === element.id || selectedTodoIds.has(element.id)"
                 :focused="focusedTodoId === element.id"
@@ -76,6 +77,7 @@
       >
         <template #item="{ element }">
           <CardItem
+            v-masonry-item
             :todo="element"
             :selected="selectedTodoId === element.id || selectedTodoIds.has(element.id)"
             :focused="focusedTodoId === element.id"
@@ -111,12 +113,16 @@
   import CardItem from './CardItem.vue'
   import { isCanvasMouseDown } from '../utils/canvas.js'
   import { CARD_MIN_WIDTHS, DEFAULT_CARD_WIDTH } from '../utils/cardWidth.js'
+  import { masonryItem } from '../utils/masonry.js'
 
   export default {
     name: 'CardsView',
     components: {
       draggable,
       CardItem
+    },
+    directives: {
+      masonryItem
     },
     props: {
       theme: {

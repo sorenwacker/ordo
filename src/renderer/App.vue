@@ -306,7 +306,6 @@
   import { useTodos } from './composables/useTodos.js'
   import { useProjects } from './composables/useProjects.js'
   import { useStatuses } from './composables/useStatuses.js'
-  import { useMasonry } from './composables/useMasonry.js'
   import keyboardShortcutsMixin from './mixins/keyboardShortcutsMixin.js'
   import { navigationOrder } from './utils/navigation.js'
   import todoActionsMixin from './mixins/todoActionsMixin.js'
@@ -346,15 +345,11 @@
       const todosComposable = useTodos()
       const projectsComposable = useProjects()
       const statusesComposable = useStatuses()
-      const { applyMasonryLayout, startCardResizeObserver, stopCardResizeObserver } = useMasonry()
 
       return {
         todosComposable,
         projectsComposable,
-        statusesComposable,
-        applyMasonryLayout,
-        startCardResizeObserver,
-        stopCardResizeObserver
+        statusesComposable
       }
     },
     data() {
@@ -637,14 +632,6 @@
         immediate: true,
         flush: 'sync'
       },
-      currentView(val) {
-        // Handle entering new view
-        if (val === 'cards') {
-          this.$nextTick(() => {
-            this.applyMasonryLayout()
-          })
-        }
-      },
       showProjectNotes(val) {
         localStorage.setItem('show-project-notes', val)
       },
@@ -658,16 +645,6 @@
         immediate: true,
         handler(val) {
           document.body.classList.toggle('light-theme', val === 'light')
-        }
-      },
-      sortedTodos() {
-        if (this.currentView === 'cards') {
-          this.applyMasonryLayout()
-        }
-      },
-      groupedTodos() {
-        if (this.currentView === 'cards') {
-          this.applyMasonryLayout()
         }
       },
       sidebarVisible(val) {
@@ -722,10 +699,6 @@
       window.api.onRefreshTodos(() => {
         this.loadAllTodos()
         this.loadTodos()
-        // Reapply masonry layout when todos are refreshed (e.g., after editing notes)
-        if (this.currentView === 'cards') {
-          this.applyMasonryLayout()
-        }
       })
 
       // Keyboard shortcuts
@@ -753,18 +726,10 @@
           }
         }
       })
-
-      // Reapply the masonry layout when card sizes change
-      this.startCardResizeObserver(() => {
-        if (this.currentView === 'cards') {
-          this.applyMasonryLayout()
-        }
-      })
     },
     beforeUnmount() {
       window.removeEventListener('keydown', this.handleKeyDown)
       window.removeEventListener('focus', this.onWindowFocus)
-      this.stopCardResizeObserver()
     },
     methods: {
       onTimezoneChange(value) {

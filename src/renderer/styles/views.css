@@ -297,6 +297,12 @@
   align-items: start;
 }
 
+/* Masonry: 1px implicit rows, and each card spans as many as its height needs
+   (set by v-masonry-item from this row unit and the row gap). */
+.cards-grid.masonry {
+  grid-auto-rows: 1px;
+}
+
 .cards-grid .todo-card,
 .cards-grid.masonry .todo-card {
   display: flex;

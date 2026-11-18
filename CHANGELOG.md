@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versions corres
 
 ## Unreleased
 
+### Changed
+
+- The masonry card layout is driven by a `ResizeObserver` on each card instead of timers. The row spans used to be set on the next tick, then again after 150 ms and 200 ms "to catch late-rendering content", and once more 100 ms after any card changed size, so a card could sit at the wrong height for close to half a second after a note was edited or the window resized. Each card now gets its span as soon as it is laid out and whenever its height changes, and the row unit lives in the stylesheet next to the gap it has to match. See [Cards view](docs/cards.md#masonry).
+
 ### Fixed
 
 - Completing a todo is one database transaction. The completed flag, the due date a completion sets, the move into or out of the Done column and the next occurrence of a recurring todo were applied by three separate copies of the same logic (the checkbox, a drop on the board, and the MCP server), and the app wrote them in two calls, so a failure between the calls could complete a recurring todo without creating its next one. One `Database.setCompleted` / `Database.moveTodo` now does all of it, for every writer. Undoing a completion also removes the occurrence it created. See [Kanban view](docs/kanban.md#the-done-column).

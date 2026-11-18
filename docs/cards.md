@@ -11,6 +11,10 @@ The cards view has two layout modes and, in card mode, a card width setting. Bot
 
 The mode is chosen with the Row/Card switcher in the header and persisted under the `card-layout` key. It defaults to card mode.
 
+## Masonry
+
+Cards in a column follow each other without regard to the other columns' row heights. CSS grid has no masonry mode yet (Chromium keeps it behind a flag), so the grid has 1px implicit rows (`grid-auto-rows` on `.cards-grid.masonry`) and each card spans as many rows as its rendered height needs. The `v-masonry-item` directive in `utils/masonry.js` sets that span from a `ResizeObserver` on the card: once when the card is first laid out and again whenever its height changes, after layout and before paint. The span is computed from the grid's own `grid-auto-rows` and `row-gap`, so the stylesheet is the only place where the row unit and gap are defined. There are no timers; nothing has to guess when content has finished rendering.
+
 ## Card width
 
 Card mode packs as many columns as fit at the chosen minimum card width; row mode is always a single full-width column, so the width control is shown only while card mode is active.
