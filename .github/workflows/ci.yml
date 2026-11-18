@@ -55,6 +55,17 @@ jobs:
         run: npm run dist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # electron-builder skips signing on pull-request builds unless told
+          # otherwise; ad-hoc signing uses no secret, so it is safe to force.
+          CSC_FOR_PULL_REQUEST: true
+
+      # The app is ad-hoc signed by electron-builder (build.mac.identity "-");
+      # an invalid or missing signature does not start on Apple silicon.
+      - name: Verify macOS signature
+        if: runner.os == 'macOS'
+        run: |
+          codesign --verify --deep --strict --verbose=2 dist/mac*/*.app
+          codesign --display --verbose=2 dist/mac*/*.app 2>&1 | grep -q 'Signature=adhoc'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
