@@ -5,6 +5,8 @@ Updates are distributed through GitHub releases and checked by
 (`src/main/updater.js`, intervals in `src/config/constants.js`). Only
 published (non-draft) releases are visible to the updater.
 
+A tag with a suffix, such as `v0.10.0-rc.1`, is a release candidate: the release workflow publishes it as a GitHub prerelease, which the updater skips, so installed apps stay on the latest full release. A plain version tag is published as the latest release.
+
 ## Windows and Linux
 
 Updates download automatically. When ready, a dialog offers to restart now

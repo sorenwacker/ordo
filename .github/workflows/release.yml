@@ -60,7 +60,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Publish the release and mark it as latest
-        run: gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+      # A release candidate (a tag with a suffix, v0.10.0-rc.1) is published
+      # as a prerelease, which electron-updater skips, so installed apps do
+      # not update to it; a plain version tag becomes the latest release.
+      - name: Publish the release, as latest or as a prerelease
+        run: |
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            gh release edit "$GITHUB_REF_NAME" --draft=false --prerelease
+          else
+            gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
