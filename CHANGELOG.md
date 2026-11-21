@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file. Versions corres
 
 ## Unreleased
 
+## 0.10.0-rc.1 - 261121
+
+### Added
+
+- Search in the full-screen card's notes. Cmd+F (Ctrl+F) opens a search box over the rendered notes; matches are highlighted, a counter shows which of how many is current, Enter and Shift+Enter step through them, and Escape closes the box before it closes the card. Long notes could only be searched in the editor. See [Full-screen card](docs/fullscreen.md).
+- Release candidates: a tag such as `v0.10.0-rc.1` is published as a GitHub prerelease, which installed apps do not update to. See [Auto-update](docs/auto-update.md).
+
 ### Changed
 
 - The masonry card layout is driven by a `ResizeObserver` on each card instead of timers. The row spans used to be set on the next tick, then again after 150 ms and 200 ms "to catch late-rendering content", and once more 100 ms after any card changed size, so a card could sit at the wrong height for close to half a second after a note was edited or the window resized. Each card now gets its span as soon as it is laid out and whenever its height changes, and the row unit lives in the stylesheet next to the gap it has to match. See [Cards view](docs/cards.md#masonry).
