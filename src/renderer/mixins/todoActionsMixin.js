@@ -55,9 +55,15 @@ export default {
       const parsedStatusId = parseDropZoneId(event.to?.dataset?.statusId)
 
       const todo = this.allTodos.find((t) => t.id === todoId)
-      if (todo && todo.status_id !== parsedStatusId) {
+      if (!todo) return
+      if (todo.status_id !== parsedStatusId) {
         await this.todosComposable.moveTodoTo(todo, { statusId: parsedStatusId })
       }
+      await this.persistDropOrder(
+        todo,
+        event.newIndex,
+        (t) => (t.status_id ?? null) === parsedStatusId
+      )
     },
     async onStackedKanbanDrop(event) {
       const todoId = event.item?.__draggable_context?.element?.id
@@ -70,9 +76,25 @@ export default {
       const statusId = parseDropZoneId(event.to?.dataset?.statusId)
 
       const todo = this.allTodos.find((t) => t.id === todoId)
-      if (todo) {
-        await this.todosComposable.moveTodoTo(todo, { statusId, projectId })
-      }
+      if (!todo) return
+      await this.todosComposable.moveTodoTo(todo, { statusId, projectId })
+      await this.persistDropOrder(
+        todo,
+        event.newIndex,
+        (t) => (t.status_id ?? null) === statusId && (t.project_id ?? null) === projectId
+      )
+    },
+    // docs/kanban.md, "Order within a column": with manual sorting, place the
+    // card at its drop index among the cards of the destination zone, as the
+    // board shows them, and save that zone's order.
+    async persistDropOrder(todo, newIndex, inZone) {
+      if (this.sortBy !== 'manual' || newIndex === undefined || newIndex === null) return
+      const shown = this.sortedKanbanTodos || this.allTodos
+      const zone = shown.filter((t) => t.id !== todo.id && !t.deleted && inZone(t))
+      zone.splice(newIndex, 0, todo)
+      await window.api.reorderTodos(zone.map((t) => t.id))
+      await this.loadAllTodos()
+      await this.loadTodos()
     },
     async addTodo() {
       if (!this.newTodoTitle.trim()) return

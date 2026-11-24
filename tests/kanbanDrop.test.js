@@ -304,3 +304,54 @@ describe('KanbanView secondary button', () => {
     expect(wrapper.emitted('clear-selection')).toBeUndefined()
   })
 })
+
+// docs/kanban.md, "Order within a column"
+describe('kanban drop order', () => {
+  const a = makeTodo({ id: 1, title: 'A' })
+  const b = makeTodo({ id: 2, title: 'B' })
+  const c = makeTodo({ id: 3, title: 'C' })
+  const d = makeTodo({ id: 4, title: 'D', status_id: 20 })
+  let api
+
+  beforeEach(() => {
+    api = {
+      moveTodo: vi.fn().mockResolvedValue(undefined),
+      reorderTodos: vi.fn().mockResolvedValue(true),
+      getTodos: vi.fn().mockResolvedValue([])
+    }
+    window.api = api
+  })
+
+  function drop(todo, dataset, newIndex) {
+    return { ...endEvent(todo, dataset), newIndex }
+  }
+
+  it('keeps a card where it is dropped within its column', async () => {
+    const host = { ...makeHost([a, b, c, d]), sortBy: 'manual' }
+    await host.onKanbanDropStatus(drop(c, { statusId: '10' }, 0))
+    expect(api.reorderTodos).toHaveBeenCalledWith([3, 1, 2])
+  })
+
+  it('keeps a card where it is dropped in another column, after the move', async () => {
+    const host = { ...makeHost([a, b, c, d]), sortBy: 'manual' }
+    await host.onKanbanDropStatus(drop(d, { statusId: '10' }, 1))
+    expect(api.moveTodo).toHaveBeenCalledWith(4, { statusId: 10 })
+    expect(api.reorderTodos).toHaveBeenCalledWith([1, 4, 2, 3])
+    expect(api.moveTodo.mock.invocationCallOrder[0]).toBeLessThan(
+      api.reorderTodos.mock.invocationCallOrder[0]
+    )
+  })
+
+  it('keeps a card where it is dropped on the grouped board', async () => {
+    const host = { ...makeHost([a, b, c, d]), sortBy: 'manual' }
+    await host.onStackedKanbanDrop(drop(a, { projectId: '5', statusId: '10' }, 2))
+    expect(api.reorderTodos).toHaveBeenCalledWith([2, 3, 1])
+  })
+
+  it('leaves the order to the sort when sorting is not manual', async () => {
+    const host = { ...makeHost([a, b, c, d]), sortBy: 'alpha' }
+    await host.onKanbanDropStatus(drop(c, { statusId: '10' }, 0))
+    await host.onStackedKanbanDrop(drop(a, { projectId: '5', statusId: '10' }, 2))
+    expect(api.reorderTodos).not.toHaveBeenCalled()
+  })
+})
