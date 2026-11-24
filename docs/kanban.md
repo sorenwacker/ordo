@@ -30,7 +30,15 @@ Each `draggable` list therefore carries the identity of its own drop zone as dat
 | Status board | `data-status-id` | no status |
 | Grouped board | `data-project-id`, `data-status-id` | inbox / no status |
 
-`onKanbanDropStatus` and `onStackedKanbanDrop` in `src/renderer/mixins/todoActionsMixin.js` parse those attributes, persist the change with `window.api.updateTodo`, and reload so the derived column lists re-filter.
+`onKanbanDropStatus` and `onStackedKanbanDrop` in `src/renderer/mixins/todoActionsMixin.js` parse those attributes, persist the change through `moveTodoTo`, persist the column order (see below), and reload so the derived column lists re-filter.
+
+## Order within a column
+
+With manual sorting, a card stays where it is dropped. Both drop handlers place the card at the SortableJS `newIndex` among the other cards of the destination zone and write that zone's order to `sort_order` with `window.api.reorderTodos`, in both layouts, for a drop within a column and for a move to another column. A move to another column writes the status and project first, then the order, then reloads.
+
+With any other sort (created, alphabetical, due date), the sort decides the order: a drop only changes the card's column and the card takes its sorted place there. The sort setting is not changed by a drag.
+
+`tests/kanbanDrop.test.js` gates both cases.
 
 ## Column width
 
